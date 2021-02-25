@@ -4,7 +4,80 @@ const AmmReaderArtifact = require("@perp/contract/build/contracts/AmmReader.json
 const InsuranceFundArtifact = require("@perp/contract/build/contracts/InsuranceFund.json")
 const ERC20Contract = require('erc20-contract-js');
 const Uniswap = require('@uniswap/sdk')
+import axios from 'axios'
+
+async function fetchUniswapDataFromTheGraph(query) {
+  console.log(query)
+  const cleanQuery=query.replace(/\n+/gm,"");
+
+  try {
+    const resp = await axios.post(
+      "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2",
+      {query: cleanQuery})
+    return resp.data
+  } catch (err) {
+    // Handle Error Here
+    console.error(err);
+    return null
+  }
+}
+
+async function getPairData(pairAddress) {
+  const quotedAddress = '"' + pairAddress.toLowerCase() + '"';
+  const query = `query {
+    pair(id: ${quotedAddress}) {
+    id,
+    totalSupply,
+    volumeToken0,
+    volumeToken1,
+    token0 {
+      id
+    },
+    token1 {
+      id
+    }
+    } }`
+  const result = await fetchUniswapDataFromTheGraph(query) 
+  return result
+}
+
 //importing SDK
+// uniswap subgraph: https://thegraph.com/explorer/subgraph/uniswap/uniswap-v2 
+// token ids need to be lower cased
+/*
+{
+  
+  pair(id: "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc") {
+    id,
+    totalSupply,
+    volumeToken0,
+    volumeToken1,
+    token0 {
+      id
+    },
+    token1 {
+      id
+    }    
+  },
+}
+  
+  liquidityPositions(user:"0xdf290293c4a4d6ebe38fd7085d7721041f927e0a",
+                     pair: "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc") {
+    id
+    user {
+      id
+    }
+    pair {
+      id
+    }
+    liquidityTokenBalance
+  }  
+}
+
+https://dev.to/hhatto/daily-price-data-from-uniswap-via-subgraph-thegraph-4b56
+
+
+*/
 
 
 //command line input https://nodejs.org/en/knowledge/command-line/how-to-prompt-for-command-line-input/
@@ -28,10 +101,6 @@ async function setupEnv() {
   }
 }
 
-async function setupERC20Token(tokenAddress) {
-
-}
-
 async function checkETHPriceOnUniswap() {
   const chainId = Uniswap.ChainId.MAINNET
   const decimals = 18
@@ -53,11 +122,32 @@ async function checkETHPriceOnUniswap() {
 
   console.log('ETH/USDC:', route_price) // 201.306
   //console.log('USDC/ETH', route.midPrice.invert().raw.toSignificant(6)) // 0.00496756
-  return { USDC_WETH_PAIR_ADDR,  route_price }
+
+  return { route_price, pair}
 
 }
 
-async function getETHBalance {
+async function getETHBalance(wallet, pair_info) {
+  // https://uniswap.org/docs/v2/API/entities/
+  const usdc_reserve = pair_info.reserveOf(pair_info.token0)
+  const eth_reserve = pair_info.reserveOf(pair_info.token1)
+  const usdc_total = usdc_reserve.numerator/usdc_reserve.denominator
+  const eth_total = eth_reserve.numerator/eth_reserve.denominator
+  const pair_address = pair_info.liquidityToken.address
+  console.log(pair_address.toLowerCase())
+
+  // getting wallet balance 
+  console.log(pair_info)
+
+  const pairDetails = await getPairData(pair_address);
+  console.log(pairDetails);
+
+  const lp_token_balance = 0.0
+  const total_supply = 0.0
+  const eth_balance = 0.0
+  
+  console.log(eth_balance, lp_token_balance, total_supply)
+  return eth_balance
 
 }
 
@@ -105,7 +195,17 @@ async function main() {
   console.log(`${symbol} balance for ${wallet.address}: ${perp_balance}`);
   const ammInfos = ammProps.map(prop => getAmmInfo(prop))
   console.log(ammInfos)
-  checkETHPriceOnUniswap()
+  const {price, pair} = await checkETHPriceOnUniswap()
+  getETHBalance(wallet, pair)
+  
+
+}
+
+async function testAPI() {
+  const result = await getPairData("0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc")
+  console.log(result);
+
+
 }
 
 async function runMarketNeutral() {
@@ -122,4 +222,5 @@ async function runMarketNeutral() {
 
 }
 
-main()
+//main()
+testAPI()
