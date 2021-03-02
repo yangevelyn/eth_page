@@ -41,44 +41,30 @@ async function getPairData(pairAddress) {
   return result
 }
 
+async function getLiquidityPositions(userAddr, pairAddr) {
+  const quotedUserAddr = '"' + userAddr.toLowerCase() + '"';
+  const quotedPairAddr = '"' + pairAddr.toLowerCase() + '"';
+  const query = `query {
+    liquidityPositions(where: { user: ${quotedUserAddr}, 
+                               pair: ${quotedPairAddr} }) {
+      id
+      user {
+        id
+      }
+      pair {
+        id
+      }
+      liquidityTokenBalance
+    }
+  }`
+  const result = await fetchUniswapDataFromTheGraph(query) 
+  return result.data.liquidityPositions[0]
+} 
+
 //importing SDK
 // uniswap subgraph: https://thegraph.com/explorer/subgraph/uniswap/uniswap-v2 
 // token ids need to be lower cased
-/*
-{
-  
-  pair(id: "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc") {
-    id,
-    totalSupply,
-    volumeToken0,
-    volumeToken1,
-    token0 {
-      id
-    },
-    token1 {
-      id
-    }    
-  },
-}
-  
-  liquidityPositions(user:"0xdf290293c4a4d6ebe38fd7085d7721041f927e0a",
-                     pair: "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc") {
-    id
-    user {
-      id
-    }
-    pair {
-      id
-    }
-    liquidityTokenBalance
-  }  
-}
-
-https://dev.to/hhatto/daily-price-data-from-uniswap-via-subgraph-thegraph-4b56
-
-
-*/
-
+//https://dev.to/hhatto/daily-price-data-from-uniswap-via-subgraph-thegraph-4b56
 
 //command line input https://nodejs.org/en/knowledge/command-line/how-to-prompt-for-command-line-input/
 // uniswap contract https://uniswap.org/docs/v2/smart-contracts/pair-erc-20 
@@ -204,8 +190,10 @@ async function main() {
 async function testAPI() {
   const result = await getPairData("0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc")
   console.log(result);
-
-
+  const result1 = await getLiquidityPositions(
+    "0xdf290293c4a4d6ebe38fd7085d7721041f927e0a",
+    "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc");
+  console.log(result1);
 }
 
 async function runMarketNeutral() {
