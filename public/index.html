@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <meta name="author" content="">
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body class="mx-auto mt-5">
+
+  <form id="form" class="mb-5">
+    <div class="mb-3">
+      <label for="accountInput" class="form-label">Enter an account</label>
+      <input class="form-control" id="accountInput">
+    </div>
+    <button id="submitButton" type="button" class="btn btn-primary">Submit</button>
+  </form>
+  <!-- <form>
+    <label for="fname">Enter an account:</label><br>
+    <input type="text" id="fname" name="fname" value="0xFc7A28B3332801a8e5405e65B3Be67c8680742E8"><br>
+    <input type="submit" value="Submit">
+  </form> -->
+
+  <h1 id="account" class="mb-3">Account: </h1>
+  <h2 id="balance">ETH Balance: </h2>
+  <h3 id="gas" class="mb-3">Total Gas Spent: </h3>
+  <hr>
+  <h2 class="mt-5">Transactions: </h2>
+
+  <table class="table mx-auto">
+    <thead>
+      <tr>
+        <th scope="col">Block #</th>
+        <th scope="col">Timestamp</th>
+        <!-- <th scope="col">Hash</th> -->
+        <th scope="col">Gas Fee</th>
+      </tr>
+    </thead>
+    <tbody id="tx-list">
+      <!-- <tr>
+        <th scope="row">1</th>
+        <td>Mark</td>
+        <td>Otto</td>
+        <td>@mdo</td>
+      </tr>
+      <tr>
+        <th scope="row">2</th>
+        <td>Jacob</td>
+        <td>Thornton</td>
+        <td>@fat</td>
+      </tr>
+      <tr>
+        <th scope="row">3</th>
+        <td colspan="2">Larry the Bird</td>
+        <td>@twitter</td>
+      </tr> -->
+    </tbody>
+  </table>
+
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script type="text/javascript" src="/gas_bundle.js"></script>
+</body>
+
+</html>
