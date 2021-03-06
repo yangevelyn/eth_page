@@ -125,20 +125,19 @@ async function main() {
 }
 
 function setAccount(){
-  console.log('setting account');
+  document.getElementById("tx-list").innerHTML = '';
   account = document.getElementById("accountInput").value;
   allTransactions = [];
   totalGas = 0;
   main();
 }
 
-function init(){
-  console.log('init');
+function init_gas(){
   document.getElementById('submitButton').onclick = setAccount;
   document.getElementById('accountInput').value = '0x660939b21C0ac3339A98dB9FFBdA74Cd59E07685';
 }
 
-window.onload = init;
-main();
+window.onload = init_gas;
+// main();
 
 

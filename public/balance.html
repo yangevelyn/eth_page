@@ -21,10 +21,10 @@
   
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
-        <li class="nav-item active">
+        <li class="nav-item">
           <a class="nav-link" href="/">Home</span></a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item active">
           <a class="nav-link" href="/balance.html">Token Balances</a>
         </li>
       </ul>
@@ -33,10 +33,14 @@
 
   <form id="form" class="mt-5 mb-5">
     <div class="mb-3">
-      <label for="accountInput" class="form-label">Enter an account</label>
-      <input class="form-control" id="accountInput">
+      <label for="account-input" class="form-label">Enter an account</label>
+      <input class="form-control" id="account-input">
     </div>
-    <button id="submitButton" type="button" class="btn btn-primary">Submit</button>
+    <div class="mb-3">
+      <label for="block-input" class="form-label">Enter a block number</label>
+      <input class="form-control" id="block-input">
+    </div>
+    <button id="balance-submit" type="button" class="btn btn-primary">Submit</button>
   </form>
   <!-- <form>
     <label for="fname">Enter an account:</label><br>
@@ -45,45 +49,25 @@
   </form> -->
 
   <h1 id="account" class="mb-3">Account: </h1>
-  <h2 id="balance">ETH Balance: </h2>
-  <h3 id="gas" class="mb-3">Total Gas Spent: </h3>
+  <h2 id="block">Block: </h2>
   <hr>
-  <h2 class="mt-5">Transactions: </h2>
+  <h2 class="mt-5">Balances: </h2>
 
-  <table class="table mx-auto">
+  <table class="table mx-auto" id="balance-table">
     <thead>
       <tr>
-        <th scope="col">Block #</th>
-        <th scope="col">Timestamp</th>
-        <!-- <th scope="col">Hash</th> -->
-        <th scope="col">Gas Fee</th>
+        <th scope="col">Symbol</th>
+        <th scope="col">Balance</th>
       </tr>
     </thead>
-    <tbody id="tx-list">
-      <!-- <tr>
-        <th scope="row">1</th>
-        <td>Mark</td>
-        <td>Otto</td>
-        <td>@mdo</td>
-      </tr>
-      <tr>
-        <th scope="row">2</th>
-        <td>Jacob</td>
-        <td>Thornton</td>
-        <td>@fat</td>
-      </tr>
-      <tr>
-        <th scope="row">3</th>
-        <td colspan="2">Larry the Bird</td>
-        <td>@twitter</td>
-      </tr> -->
+    <tbody id="token-list">
     </tbody>
   </table>
 
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script src="/token_abi.js"></script>
-  <script type="text/javascript" src="/gas_bundle.js"></script>
-  <!-- <script type="text/javascript" src="/balance_bundle.js"></script> -->
+  <!-- <script type="text/javascript" src="/gas_bundle.js"></script> -->
+  <script type="text/javascript" src="/balance_bundle.js"></script>
 </body>
 
 </html>

@@ -10,12 +10,8 @@ const Uniswap = require('@uniswap/sdk')
 //https://github.com/sebs/etherscan-api
 const API_KEY = 'B62JERIYMBVDVNDSCVUCHRBRN49XXN1DYJ';
 var api;
-// require(['etherscan-api'], function(etherscan){
-//   // api = etherscan.init(API_KEY);
-// })
 var api = require('etherscan-api').init(API_KEY); 
 
-let sort = 0;
 let allTransactions = [];
 let account = "";
 
@@ -41,29 +37,6 @@ async function gasSummary() {
       totalCount += count; 
       allTransactions.push(...transactions.result);
       console.log(transactions.result);
-      // for (var i =0; i < count; i++) { 
-      //   const txn = transactions.result[i]
-      //   const gasFee = parseInt(txn.gasPrice)/10**18*parseInt(txn.gasUsed)
-      //   totalGas += gasFee
-
-      //   let node = document.createElement("TR");
-      //   let block = document.createElement("TH");
-      //   block.innerHTML = txn.blockNumber;
-      //   let timeStamp = document.createElement("TD");
-      //   timeStamp.innerHTML = txn.timeStamp;
-      //   let hash = document.createElement("TD");
-      //   hash.innerHTML = txn.hash;
-      //   let gasUsed = document.createElement("TD");
-      //   gasUsed.innerHTML = txn.gasUsed;
-
-      //   node.appendChild(block);
-      //   node.appendChild(timeStamp);
-      //   // node.appendChild(hash);
-      //   node.appendChild(gasUsed);
-      //   document.getElementById("tx-list").appendChild(node);
-      //   // console.log(txn);
-      //   // console.log('block: ', txn.blockNumber, 'hash: ', txn.hash, 'gas fee: ', gasFee)
-      // }
       console.log(transactions.result[0])
       pageNum++;
     }
@@ -116,14 +89,8 @@ async function getTransaction(txn_hash) {
 async function main() {
   const hash = '0x66d2e5193663cf84f462dd34998d1b4d9d027c4c96a89379e8dfedee7d8c33bf';
   //await getTransaction(hash);
-  // let accountName;
   // let account = '0x660939b21C0ac3339A98dB9FFBdA74Cd59E07685' 
   const contract = '0x17e8ca1b4798b97602895f63206afcd1fc90ca5f'
-
-  // document.getElementById("submitButton").addEventListener("click", () => {
-  //   console.log("clicked");
-  //   accountName = document.getElementById("accountInput").value;
-  // })
 
   let totalGas = 0;
   getApprovals(account, contract);
@@ -145,7 +112,6 @@ async function main() {
 
       node.appendChild(block);
       node.appendChild(timeStamp);
-      // node.appendChild(hash);
       node.appendChild(gasFeeText);
       document.getElementById("tx-list").appendChild(node);
     })
@@ -160,21 +126,20 @@ async function main() {
 }
 
 function setAccount(){
-  console.log('setting account');
+  document.getElementById("tx-list").innerHTML = '';
   account = document.getElementById("accountInput").value;
   allTransactions = [];
   totalGas = 0;
   main();
 }
 
-function init(){
-  console.log('init');
+function init_gas(){
   document.getElementById('submitButton').onclick = setAccount;
   document.getElementById('accountInput').value = '0x660939b21C0ac3339A98dB9FFBdA74Cd59E07685';
 }
 
-window.onload = init;
-main();
+window.onload = init_gas;
+// main();
 
 
 
