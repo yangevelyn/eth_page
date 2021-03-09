@@ -1,7 +1,3 @@
-// const { Contract, providers, Wallet, utils, ethers } = require("ethers")
-// const provider = new providers.getDefaultProvider();
-// const provider = new providers.Web3Provider(window.ethereum);
-
 var Web3 = require('web3');
 var Contract = require('web3-eth-contract');
 
@@ -18,28 +14,11 @@ var block = 11900892;
 var tokenlist;
 var cleanedList;
 
-// var contract = new Contract(perp_address, human_standard_token_abi, provider);
-// contract.balanceOf(account, {blockTag: block})
-// .then((res) => {
-//   console.log('here');
-//   console.log(ethers.utils.formatEther(res));
-// })
-// let contract = new Contract(human_standard_token_abi, perp_address);
-// contract.methods.balanceOf(account).call('latest')
-// .then((bal) => {
-//   console.log(bal/10**18);
-// })
-
 async function getBalanceList(){
   var balanceList = [];
 
   let list = await tokenlist.map((item) => {
     let contract = new Contract(human_standard_token_abi, item.address);
-    // let contract = new Contract(item.address, human_standard_token_abi, provider)
-    // return contract.balanceOf(item.address)
-    // .then((res) => {
-    //   // console.log(res);
-    // })
     return contract.methods.balanceOf(account).call(block)
     .then((bal) => {
       balanceList.push({
