@@ -12,73 +12,60 @@
   <link href="css/style.css" rel="stylesheet">
 </head>
 
-<body class="mx-auto mt-5">
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="./index.html">Dashboard</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-  
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav mr-auto">
-        <li class="nav-item active">
-          <a class="nav-link" href="./index.html">Home</span></a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="./balance.html">Token Balances</a>
-        </li>
-      </ul>
+<body class="bg-light">
+  <div id="navbar" class="mx-auto">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="./index.html">Dashboard</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="./index.html">Home</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./balance.html">Token Balances</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <div id="content" class="card mx-auto p-5">
+    <form id="form" class="mb-5">
+      <div class="mb-3">
+        <label for="accountInput" class="form-label">Enter an account</label>
+        <input class="form-control" id="accountInput">
+      </div>
+      <button id="submitButton" type="button" class="btn btn-primary">Submit</button>
+    </form>
+
+    <div id="info" class="card bg-light p-4 mb-3">
+      <h3>Account: <span id="account" class="text-secondary"></span></h3>
+      <hr>
+      <h4>ETH Balance: <span id="balance" class="text-secondary"></span></h4>
+      <h4>Total Gas Spent: <span id="gas" class="text-secondary"></span></h4>
     </div>
-  </nav>
 
-  <form id="form" class="mt-5 mb-5">
-    <div class="mb-3">
-      <label for="accountInput" class="form-label">Enter an account</label>
-      <input class="form-control" id="accountInput">
+    <h2 class="mt-3">Transactions: </h2>
+
+    <div class="card bg-light p-4">
+      <table class="table mx-auto">
+        <thead>
+          <tr>
+            <th scope="col">Block #</th>
+            <th scope="col">Timestamp</th>
+            <!-- <th scope="col">Hash</th> -->
+            <th scope="col">Gas Fee</th>
+          </tr>
+        </thead>
+        <tbody id="tx-list">
+        </tbody>
+      </table>
     </div>
-    <button id="submitButton" type="button" class="btn btn-primary">Submit</button>
-  </form>
-  <!-- <form>
-    <label for="fname">Enter an account:</label><br>
-    <input type="text" id="fname" name="fname" value="0xFc7A28B3332801a8e5405e65B3Be67c8680742E8"><br>
-    <input type="submit" value="Submit">
-  </form> -->
-
-  <h1 id="account" class="mb-3">Account: </h1>
-  <h2 id="balance">ETH Balance: </h2>
-  <h3 id="gas" class="mb-3">Total Gas Spent: </h3>
-  <hr>
-  <h2 class="mt-5">Transactions: </h2>
-
-  <table class="table mx-auto">
-    <thead>
-      <tr>
-        <th scope="col">Block #</th>
-        <th scope="col">Timestamp</th>
-        <!-- <th scope="col">Hash</th> -->
-        <th scope="col">Gas Fee</th>
-      </tr>
-    </thead>
-    <tbody id="tx-list">
-      <!-- <tr>
-        <th scope="row">1</th>
-        <td>Mark</td>
-        <td>Otto</td>
-        <td>@mdo</td>
-      </tr>
-      <tr>
-        <th scope="row">2</th>
-        <td>Jacob</td>
-        <td>Thornton</td>
-        <td>@fat</td>
-      </tr>
-      <tr>
-        <th scope="row">3</th>
-        <td colspan="2">Larry the Bird</td>
-        <td>@twitter</td>
-      </tr> -->
-    </tbody>
-  </table>
+  </div>
 
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script type="text/javascript" src="./gas_bundle.js"></script>

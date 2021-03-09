@@ -116,9 +116,9 @@ async function main() {
     })
 
     console.log(res);
-    document.getElementById("account").innerHTML = "Account: " + account;
-    document.getElementById("balance").innerHTML = "ETH Balance: " + res.balance/(10**18);
-    document.getElementById("gas").innerHTML = "Total Gas Spent: " + totalGas;
+    document.getElementById("account").innerHTML = account;
+    document.getElementById("balance").innerHTML = res.balance/(10**18);
+    document.getElementById("gas").innerHTML = totalGas;
   });
 
   
@@ -135,6 +135,8 @@ function setAccount(){
 function init_gas(){
   document.getElementById('submitButton').onclick = setAccount;
   document.getElementById('accountInput').value = '0x660939b21C0ac3339A98dB9FFBdA74Cd59E07685';
+  account = '0x660939b21C0ac3339A98dB9FFBdA74Cd59E07685';
+  main();
 }
 
 window.onload = init_gas;
