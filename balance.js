@@ -13,6 +13,7 @@ var block = 11900892;
 
 var tokenlist;
 var cleanedList;
+const { human_standard_token_abi } = require('./token_abi');
 
 async function getBalanceList(){
   var balanceList = [];

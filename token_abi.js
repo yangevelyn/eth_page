@@ -1,5 +1,5 @@
 // https://github.com/shawntabrizi/ERC20-Token-Balance/blob/master/human_standard_token_abi.js
-var human_standard_token_abi = [
+const human_standard_token_abi = [
   {
       "constant": true,
       "inputs": [],
@@ -268,3 +268,4 @@ var human_standard_token_abi = [
       "type": "function"
   }
 ];
+module.exports = { human_standard_token_abi };
