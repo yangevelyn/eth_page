@@ -1,8 +1,9 @@
 var Web3 = require('web3');
-var Contract = require('web3-eth-contract');
+// var Contract = require('web3-eth-contract');
 
 // set provider for all later instances to use
-Contract.setProvider(window.ethereum || new Web3.providers.HttpProvider('https://eth-mainnet.alchemyapi.io/v2/ZiRLHRMU4UKAJ8mPEvTbJq35YdCm5MxJ'));
+// Contract.setProvider(window.ethereum || new Web3.providers.HttpProvider('https://eth-mainnet.alchemyapi.io/v2/ZiRLHRMU4UKAJ8mPEvTbJq35YdCm5MxJ'));
+var web3 = new Web3(window.ethereum || 'https://eth-mainnet.alchemyapi.io/v2/ZiRLHRMU4UKAJ8mPEvTbJq35YdCm5MxJ');
 
 const perp_address = '0xbC396689893D065F41bc2C6EcbeE5e0085233447';
 // var account = '0x97137466bc8018531795217f0ecc4ba24dcba5c1';
@@ -19,7 +20,7 @@ async function getBalanceList(){
   var balanceList = [];
 
   let list = await tokenlist.map((item) => {
-    let contract = new Contract(human_standard_token_abi, item.address);
+    let contract = new web3.eth.Contract(human_standard_token_abi, item.address);
     return contract.methods.balanceOf(account).call(block)
     .then((bal) => {
       balanceList.push({
@@ -35,6 +36,13 @@ async function getBalanceList(){
   });
 }
 
+async function getETHBalance(){
+  return web3.eth.getBalance(account, block)
+  .then((bal) => {
+    return web3.utils.fromWei(bal);
+  })
+}
+
 function setInput(){
   document.getElementById("token-list").innerHTML = '';
   account = document.getElementById("account-input").value;
@@ -42,9 +50,10 @@ function setInput(){
   main();
 }
 
-function setHTML(balanceList){
+function setHTML(balanceList, ethBalance){
   document.getElementById("account").innerHTML = "Account: " + account;
   document.getElementById("block").innerHTML = "Block: " + block;
+  document.getElementById("balance").innerHTML = "ETH Balance: " + ethBalance;
 
   balanceList.map((token) => {
     if(token.balance !== 0){
@@ -91,8 +100,10 @@ async function init_balance(){
 async function main(){
   var balanceList = await getBalanceList();
   console.log(balanceList);
+  var ethBalance = await getETHBalance();
+  console.log(ethBalance);
   
-  setHTML(balanceList);
+  setHTML(balanceList, ethBalance);
 }
 
 window.onload = init_balance;
