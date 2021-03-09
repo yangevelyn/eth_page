@@ -69,9 +69,8 @@ function setHTML(balanceList){
 }
 
 async function init_balance(){
-  tokenlist = await fetch("/tokenlist.json")
-  .then((res) => res.json())
-  .then((json) => json.tokens);
+  const token_json = require("./tokenlist.json");
+  tokenlist = token_json.tokens;
 
   cleanedList = tokenlist.map(i => {
     return {
