@@ -1,22 +1,45 @@
+// const { Contract, providers, Wallet, utils, ethers } = require("ethers")
+// const provider = new providers.getDefaultProvider();
+// const provider = new providers.Web3Provider(window.ethereum);
+
+var Web3 = require('web3');
 var Contract = require('web3-eth-contract');
 
-// // set provider for all later instances to use
-Contract.setProvider(window.ethereum);
+// set provider for all later instances to use
+Contract.setProvider(window.ethereum || new Web3.providers.HttpProvider('https://eth-mainnet.alchemyapi.io/v2/ZiRLHRMU4UKAJ8mPEvTbJq35YdCm5MxJ'));
 
 const perp_address = '0xbC396689893D065F41bc2C6EcbeE5e0085233447';
-var account = '0x97137466bc8018531795217f0ecc4ba24dcba5c1';
-var block = 'latest';
+// var account = '0x97137466bc8018531795217f0ecc4ba24dcba5c1';
+var account = '0x660939b21C0ac3339A98dB9FFBdA74Cd59E07685';
+var block = 11900892;
 
 // https://www.shawntabrizi.com/ethereum/ethereum-token-contract-abi-web3-erc-20-human-standard-tokens/
 
 var tokenlist;
 var cleanedList;
 
+// var contract = new Contract(perp_address, human_standard_token_abi, provider);
+// contract.balanceOf(account, {blockTag: block})
+// .then((res) => {
+//   console.log('here');
+//   console.log(ethers.utils.formatEther(res));
+// })
+// let contract = new Contract(human_standard_token_abi, perp_address);
+// contract.methods.balanceOf(account).call('latest')
+// .then((bal) => {
+//   console.log(bal/10**18);
+// })
+
 async function getBalanceList(){
   var balanceList = [];
 
   let list = await tokenlist.map((item) => {
     let contract = new Contract(human_standard_token_abi, item.address);
+    // let contract = new Contract(item.address, human_standard_token_abi, provider)
+    // return contract.balanceOf(item.address)
+    // .then((res) => {
+    //   // console.log(res);
+    // })
     return contract.methods.balanceOf(account).call(block)
     .then((bal) => {
       balanceList.push({

@@ -1,3 +1,4 @@
+// https://github.com/shawntabrizi/ERC20-Token-Balance/blob/master/human_standard_token_abi.js
 var human_standard_token_abi = [
   {
       "constant": true,
