@@ -19,6 +19,13 @@ const { human_standard_token_abi } = require('./token_abi');
 const API_KEY = 'B62JERIYMBVDVNDSCVUCHRBRN49XXN1DYJ';
 var api = require('etherscan-api').init(API_KEY); 
 
+async function getTokenBalanceforWallet(wallet, token, block) {
+  let contract = new Contract(human_standard_token_abi, token);
+  const bal = await contract.methods.balanceOf(wallet).call(block) 
+  const decimals = await contract.methods.decimals().call()
+  return bal/(10**decimals);
+}
+
 //pad the hex string to 64 bytes
 function padHexString(hexString) {
   const mainStr = hexString.slice(2)
@@ -28,22 +35,47 @@ function padHexString(hexString) {
 
 }
 
-async function getApprovals(account, contract) {
+async function getApprovals(account, contract, fromBlock = 1, toBlock ='latest') {
   const approvalFuncHash = '0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925';
   const account_str = padHexString(account)
   const contract_str = padHexString(contract)
 
-  const api_url =`https://api.etherscan.io/api?module=logs&action=getLogs&fromBlock=1&toBlock=latest&topic0=${approvalFuncHash}&topic0_1_opr=and&topic1=${account_str}&topic1_2_opr=and&topic2=${contract_str}&apikey=${API_KEY}`
+  const api_url =`https://api.etherscan.io/api?module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&topic0=${approvalFuncHash}&topic0_1_opr=and&topic1=${account_str}&topic1_2_opr=and&topic2=${contract_str}&apikey=${API_KEY}`
 
   try {
     const results = await axios.get(api_url);
-    return results;
-
+    const res_list = results.data.result
+    var token2limits = {}
+    for (var j =0; j < res_list.length; j++) {
+      const approval = res_list[j]
+      token2limits[approval.address] = approval.data
+    }
+    var output_string = ""
+    for (let token in token2limits) {
+      const balance = await getTokenBalanceforWallet(account, token, toBlock)
+      const tlimit = token2limits[token]
+      output_string += `${account}\t${token}\t${tlimit}\t${balance}\n`
+    }
+    
+    return output_string
   } catch (error) {
     console.log(error)
   }
 
 }
+
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
+async function exec_command(cmd) {
+  try {
+      const { stdout, stderr } = await exec(cmd);
+      return stdout
+      //console.log('stdout:', stdout);
+      console.log('stderr:', stderr);
+  } catch (err) {
+     console.error(err);
+  };
+};
 
 
 async function getWalletsForContract(contract, start_block, end_block, output_file) {
@@ -68,30 +100,36 @@ async function getWalletsForContract(contract, start_block, end_block, output_fi
   }
 }
 
-async function getTokenBalanceforWallet(wallet, token, block) {
-  let contract = new Contract(human_standard_token_abi, token);
-  const bal = await contract.methods.balanceOf(wallet).call(block) 
-  const decimals = await contract.methods.decimals().call()
-  return bal/(10**decimals);
-}
 
 
 async function main() {
   const furucombo_contract = '0x17e8ca1b4798b97602895f63206afcd1fc90ca5f'
   const wallet = '0x660939b21C0ac3339A98dB9FFBdA74Cd59E07685';
-  const block = 11900892
-  const perp_token =  '0xbC396689893D065F41bc2C6EcbeE5e0085233447';
-  
-  //const perp_balance = await getTokenBalanceforWallet(wallet, perp_token, block)
-  //console.log(perp_balance);
 
   const furu_contract = '0x17e8ca1b4798b97602895f63206afcd1fc90ca5f'
-  const last_furu_block = 11940504 
+  const last_furu_block = 11940503 
   const first_furu_block = 11618386
-  const middle_block = parseInt((11940504 + 11618386)/2)
-  getWalletsForContract(furu_contract, first_furu_block, middle_block, 'furu_wallets.1.txt') 
-  getWalletsForContract(furu_contract, middle_block +1, last_furu_block, 'furu_wallets.2.txt') 
+  const middle_block = parseInt((first_furu_block + last_furu_block)/2)
+  
+  /*
+  await getWalletsForContract(furu_contract, first_furu_block, middle_block, 'furu_wallets.1.txt') 
+  await getWalletsForContract(furu_contract, middle_block +1, last_furu_block, 'furu_wallets.2.txt') 
+  await exec_command("sort furu_wallets.1.txt furu_wallets.2.txt | uniq > furu_wallets.txt");
+  */
+  
 
+  // get the approval data and allowance
+  const wallet_data = await exec_command("cat wallet_sample.txt")
+  const wallets = wallet_data.split("\n");
+  const output_file = 'wallet_impact.txt'
+  await fs.writeFile(output_file, '', {flag: "w"});
+
+  for (var w = 0 ; w < wallets.length ; w ++) {
+      const result = await getApprovals(wallets[w], furucombo_contract,
+                                        first_furu_block, last_furu_block)
+      await fs.writeFile(output_file, result, {flag: "a"});
+      console.log("Wallet processed:", wallets[w]);
+  }
 }
 
 
