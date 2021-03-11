@@ -24,6 +24,7 @@ async function getBalanceList(){
     return contract.methods.balanceOf(account).call(block)
     .then((bal) => {
       balanceList.push({
+        address: item.address,
         symbol: item.symbol,
         balance: bal/10**(item.decimals),
         logo: item.logoURI
@@ -31,8 +32,40 @@ async function getBalanceList(){
     })
   });
   return Promise.allSettled(list)
-  .then(() => {
-    return balanceList.sort((a, b) => b.balance - a.balance);
+  .then(async () => {
+    addressList = tokenlist.map((token) => token.address);
+
+    //split into calls of maximum length 100
+    addrStrList = [];
+    for(let i = 0; i < addressList.length / 100; i++){
+      addrStrList.push(addressList.slice(i * 100, 
+                         addressList.length < (i + 1) * 100 ? 
+                         addressList.length: (i + 1) * 100).join(","));
+    }
+
+    //call geckocoin to convert to usd
+    let usdBalList = [];
+    let promises = await addrStrList.map((item) => {
+      let apiUrl = `https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${item}&vs_currencies=usd`
+      try {
+        return axios.get(apiUrl)
+        .then((res) => {
+          console.log(res.data);
+          for(const prop in res.data){
+            //add current price in usd to balanceList
+            const ind = balanceList.findIndex(token => token.address == prop);
+            balanceList[ind] = {...balanceList[ind], usd: res.data[prop].usd}
+          }
+        })
+      } catch(err) {
+        console.log(err);
+      }
+    })
+
+    return Promise.allSettled(promises)
+    .then(() => {
+      return balanceList.sort((a, b) => b.balance - a.balance);
+    })
   });
 }
 
@@ -50,10 +83,22 @@ function setInput(){
   main();
 }
 
-function setHTML(balanceList, ethBalance){
+async function setHTML(balanceList, ethBalance){
   document.getElementById("account").innerHTML = account;
   document.getElementById("block").innerHTML = block;
-  document.getElementById("balance").innerHTML = ethBalance;
+  // document.getElementById("balance").innerHTML = ethBalance;
+
+  let ethUSD = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
+  .then((res) => {
+    return res.data.ethereum.usd;
+  })
+
+  balanceList.unshift({
+    symbol: 'ETH',
+    logo: 'https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/ed396/eth-diamond-black.png',
+    balance: ethBalance,
+    usd: ethUSD
+  })
 
   balanceList.map((token) => {
     if(token.balance !== 0){
@@ -62,7 +107,7 @@ function setHTML(balanceList, ethBalance){
       let logo = document.createElement("img");
       let symbolName = document.createElement("div");
       logo.src = token.logo;
-      logo.width = "36";
+      logo.height = "36";
       symbolName.innerText = token.symbol;
       symbolName.style.marginLeft = "8px";
       symbol.appendChild(logo);
@@ -71,9 +116,17 @@ function setHTML(balanceList, ethBalance){
       symbol.style.alignItems = "center";
       let balance = document.createElement("td");
       balance.innerHTML = token.balance;
+      let usd = document.createElement("td");
+      console.log(token.usd);
+      usd.innerHTML = "$" + Math.round((token.balance * token.usd + Number.EPSILON) * 100)/100;
+
+      if(token.symbol == 'ETH'){
+        node.style.backgroundColor = 'rgba(183,228,199,0.25)';
+      }
 
       node.appendChild(symbol);
       node.appendChild(balance);
+      node.appendChild(usd);
       document.getElementById("token-list").appendChild(node);
     }
   })
