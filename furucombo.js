@@ -23,7 +23,7 @@ async function getTokenBalanceforWallet(wallet, token, block) {
   let contract = new Contract(human_standard_token_abi, token);
   const bal = await contract.methods.balanceOf(wallet).call(block) 
   const decimals = await contract.methods.decimals().call()
-  return bal/(10**decimals);
+  return [bal/(10**decimals), decimals];
 }
 
 //pad the hex string to 64 bytes
@@ -52,9 +52,9 @@ async function getApprovals(account, contract, fromBlock = 1, toBlock ='latest')
     }
     var output_string = ""
     for (let token in token2limits) {
-      const balance = await getTokenBalanceforWallet(account, token, toBlock)
-      const tlimit = token2limits[token]
-      output_string += `${account}\t${token}\t${tlimit}\t${balance}\n`
+      const [balance, decimals] = await getTokenBalanceforWallet(account, token, toBlock)
+      const tlimit = parseInt(token2limits[token])/(10**decimals)
+      output_string += `${account}\t${token}\t${tlimit}\t${balance}\t${decimals}\n`
     }
     
     return output_string
@@ -112,14 +112,14 @@ async function main() {
   const middle_block = parseInt((first_furu_block + last_furu_block)/2)
   
   /*
-  await getWalletsForContract(furu_contract, first_furu_block, middle_block, 'furu_wallets.1.txt') 
-  await getWalletsForContract(furu_contract, middle_block +1, last_furu_block, 'furu_wallets.2.txt') 
+  await getWalletsForContract(furucombo_contract, first_furu_block, middle_block, 'furu_wallets.1.txt') 
+  await getWalletsForContract(furucombo_contract, middle_block +1, last_furu_block, 'furu_wallets.2.txt') 
   await exec_command("sort furu_wallets.1.txt furu_wallets.2.txt | uniq > furu_wallets.txt");
   */
   
 
   // get the approval data and allowance
-  const wallet_data = await exec_command("cat wallet_sample.txt")
+  const wallet_data = await exec_command("cat furu_wallets.txt")
   const wallets = wallet_data.split("\n");
   const output_file = 'wallet_impact.txt'
   await fs.writeFile(output_file, '', {flag: "w"});
@@ -127,7 +127,9 @@ async function main() {
   for (var w = 0 ; w < wallets.length ; w ++) {
       const result = await getApprovals(wallets[w], furucombo_contract,
                                         first_furu_block, last_furu_block)
-      await fs.writeFile(output_file, result, {flag: "a"});
+      if (result) {
+        await fs.writeFile(output_file, result, {flag: "a"});
+      }
       console.log("Wallet processed:", wallets[w]);
   }
 }
