@@ -26,6 +26,12 @@ async function getTokenBalanceforWallet(wallet, token, block) {
   return [bal/(10**decimals), decimals];
 }
 
+async function getTokenSymbol(token) {
+  let contract = new Contract(human_standard_token_abi, token);
+  const symbol = await contract.methods.symbol().call()
+  return symbol
+}
+
 //pad the hex string to 64 bytes
 function padHexString(hexString) {
   const mainStr = hexString.slice(2)
@@ -100,7 +106,99 @@ async function getWalletsForContract(contract, start_block, end_block, output_fi
   }
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
+async function getTokenPrices(wallet_impact_file) {
+  var token2usd = {}
+  const fsf = require('fs');
+  const readline = require('readline');
+
+  const fileStream = fsf.createReadStream(wallet_impact_file);
+  const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity
+  });
+  // Note: we use the crlfDelay option to recognize all instances of CR LF
+  // ('\r\n') in input.txt as a single line break.
+
+  for await (const line of rl) {
+    // Each line in input.txt will be successively available here as `line`.
+    const fields = line.split("\t")
+    if (parseFloat(fields[3]) > 1e-10) {
+      token2usd[fields[1]] = 0;
+    }
+  }
+  const token_list = Object.keys(token2usd)
+  for (var j = 0; j < token_list.length; j++) {
+    const token = token_list[j]
+    const price_url = `https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${token}&vs_currencies=usd`
+    token2usd[token] = {symbol: '', usd_price: 0 }
+    
+    try {
+      const symbol = await getTokenSymbol(token)
+      token2usd[token].symbol = symbol
+      const res = await axios.get(price_url)
+      console.log(symbol)
+      if (res.data) {
+        token2usd[token].usd_price = res.data[token].usd
+      }
+      await sleep(700)
+      //console.log(res)
+
+    } catch(error) {
+      console.log(error);
+    }
+  }
+
+  return token2usd
+}
+
+  
+async function outputLoss(output_file, token_file, loss_file) {
+  const fsf = require('fs');
+  const readline = require('readline');
+
+  var token2usd = {}
+  const token_content = await exec_command(`cat ${token_file}`)
+  const lines = token_content.split("\n");
+  for (var j = 0; j < lines.length; j++) {
+    const line = lines[j]
+    const [token, symbol, price] = line.split("\t")
+    token2usd[token] = {symbol: symbol, usd_price: price}
+  }
+
+  const fileStream = fsf.createReadStream(output_file);
+  const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity
+  });
+  // Note: we use the crlfDelay option to recognize all instances of CR LF
+  // ('\r\n') in input.txt as a single line break.
+
+  await fs.writeFile(loss_file, '', {flag: "w"});
+  for await (const line of rl) {
+    // Each line in input.txt will be successively available here as `line`.
+    const fields = line.split("\t")
+    const balance = parseFloat(fields[3])
+    const tlimit = parseFloat(fields[2])
+    const loss = tlimit < balance ? tlimit : balance
+    if (balance > 1e-10) {
+      const wallet = fields[0]
+      const token = fields[1]
+      const token_info = token2usd[token]
+      const price = token_info.usd_price
+      const symbol = token_info.symbol
+      const usd_loss = loss * token_info.usd_price
+      const output_str = `${wallet}\t${token}\t${tlimit}\t${balance}\t${symbol}\t${loss}\t${price}\t${usd_loss}\n`
+      await fs.writeFile(loss_file, output_str, {flag: "a"});
+    }
+  }
+
+}
 
 async function main() {
   const furucombo_contract = '0x17e8ca1b4798b97602895f63206afcd1fc90ca5f'
@@ -119,11 +217,14 @@ async function main() {
   
 
   // get the approval data and allowance
+  const output_file = 'wallet_impact.txt';
+  const loss_output_file = 'wallet_loss.txt'; 
+  const token_file = 'token_info.txt'
+
+  /*
   const wallet_data = await exec_command("cat furu_wallets.txt")
   const wallets = wallet_data.split("\n");
-  const output_file = 'wallet_impact.txt'
   await fs.writeFile(output_file, '', {flag: "w"});
-
   for (var w = 0 ; w < wallets.length ; w ++) {
       const result = await getApprovals(wallets[w], furucombo_contract,
                                         first_furu_block, last_furu_block)
@@ -132,6 +233,19 @@ async function main() {
       }
       console.log("Wallet processed:", wallets[w]);
   }
+  const token2usd = await getTokenPrices(output_file);
+  console.log(token2usd)
+  await fs.writeFile(token_file, '', {flag: "w"});
+  for (let token in token2usd) {
+    const symbol = token2usd[token].symbol
+    const price = token2usd[token].usd_price || 0
+    await fs.writeFile(token_file, `${token}\t${symbol}\t${price}\n`, {flag: "a"});
+  }
+  */
+
+
+  await outputLoss(output_file, token_file, loss_output_file); 
+  
 }
 
 
