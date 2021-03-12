@@ -5,7 +5,7 @@ var Web3 = require('web3');
 // Contract.setProvider(window.ethereum || new Web3.providers.HttpProvider('https://eth-mainnet.alchemyapi.io/v2/ZiRLHRMU4UKAJ8mPEvTbJq35YdCm5MxJ'));
 var web3 = new Web3(window.ethereum || 'https://eth-mainnet.alchemyapi.io/v2/ZiRLHRMU4UKAJ8mPEvTbJq35YdCm5MxJ');
 
-const perp_address = '0xbC396689893D065F41bc2C6EcbeE5e0085233447';
+const API_KEY = 'B62JERIYMBVDVNDSCVUCHRBRN49XXN1DYJ';
 // var account = '0x97137466bc8018531795217f0ecc4ba24dcba5c1';
 var account = '0x660939b21C0ac3339A98dB9FFBdA74Cd59E07685';
 var block = 11900892;
@@ -19,7 +19,46 @@ const { human_standard_token_abi } = require('./token_abi');
 async function getBalanceList(){
   var balanceList = [];
 
-  let list = await tokenlist.map((item) => {
+  //get list of relevant tokens from account transaction list
+  let txUrl =  `https://api.etherscan.io/api?module=account&action=tokentx&address=${account}&startblock=0&endblock=999999999&sort=asc&apikey=${API_KEY}`;
+  let relevantTokenList = await axios.get(txUrl)
+  .then((res) => {
+    //filter out token duplicates
+    let txs = res.data.result;
+    let seen = [];
+    txs = txs.filter((item) => {
+      let ind = seen.findIndex(e => e == item.tokenSymbol);
+      if(ind == -1){
+        seen.push(item.tokenSymbol);
+        return true;
+      }
+      return false;
+    });
+
+    //loop through api call results
+    return txs.map((item) => {
+      if(item.tokenSymbol != ""){
+        const ind = tokenlist.findIndex(token => token.symbol == item.tokenSymbol);
+        let logo = "";
+        if(ind != -1){
+          logo = tokenlist[ind].logoURI;
+        }
+        seen.push(item.tokenSymbol);
+        //recreate tokenlist.json format
+        return {
+          address: item.contractAddress,
+          decimals: item.tokenDecimal,
+          logoURI: logo,
+          name: item.tokenName,
+          symbol: item.tokenSymbol
+        }
+      }
+    })
+  })
+
+  console.log(relevantTokenList);
+
+  let list = await relevantTokenList.map((item) => {
     let contract = new web3.eth.Contract(human_standard_token_abi, item.address);
     return contract.methods.balanceOf(account).call(block)
     .then((bal) => {
@@ -64,7 +103,7 @@ async function getBalanceList(){
 
     return Promise.allSettled(promises)
     .then(() => {
-      return balanceList.sort((a, b) => b.balance - a.balance);
+      return balanceList.sort((a, b) => b.balance * b.usd - a.balance * a.usd);
     })
   });
 }
@@ -118,7 +157,7 @@ async function setHTML(balanceList, ethBalance){
       balance.innerHTML = token.balance;
       let usd = document.createElement("td");
       console.log(token.usd);
-      usd.innerHTML = "$" + Math.round((token.balance * token.usd + Number.EPSILON) * 100)/100;
+      usd.innerHTML = "$" + (Math.round((token.balance * token.usd + Number.EPSILON) * 100)/100).toLocaleString();
 
       if(token.symbol == 'ETH'){
         node.style.backgroundColor = 'rgba(183,228,199,0.25)';
