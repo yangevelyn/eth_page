@@ -41,6 +41,32 @@ function padHexString(hexString) {
 
 }
 
+async function getApprovalsForContract(contract, fromBlock = 1, toBlock ='latest') {
+  const approvalFuncHash = '0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925';
+  const contract_str = padHexString(contract)
+  const account_str = padHexString(contract)
+  const api_url =`https://api.etherscan.io/api?module=logs&action=getLogs&fromBlock=${fromBlock}&toBlock=${toBlock}&topic0=${approvalFuncHash}&topic0_2_opr=and&topic2=${contract_str}&apikey=${API_KEY}`
+  try {
+    const results = await axios.get(api_url);
+    const res_list = results.data.result
+    console.log("query results:", fromBlock, toBlock, res_list.length);
+    var output_string = ""
+    for (var j =0; j < res_list.length; j++) {
+      const approval = res_list[j]
+      const t0 = approval.topics[0]
+      const t2 =  approval.topics[2]
+      const wallet =  approval.topics[1]
+      const token = approval.address
+      const tlimit =  approval.data 
+      output_string += `${wallet}\t${token}\t${tlimit}\n`
+    }
+    return output_string
+  } catch (error) {
+    console.log(error)
+    return '';
+  }
+}
+
 async function getApprovals(account, contract, fromBlock = 1, toBlock ='latest') {
   const approvalFuncHash = '0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925';
   const account_str = padHexString(account)
@@ -209,11 +235,13 @@ async function main() {
   const first_furu_block = 11618386
   const middle_block = parseInt((first_furu_block + last_furu_block)/2)
   
+  
   /*
   await getWalletsForContract(furucombo_contract, first_furu_block, middle_block, 'furu_wallets.1.txt') 
   await getWalletsForContract(furucombo_contract, middle_block +1, last_furu_block, 'furu_wallets.2.txt') 
   await exec_command("sort furu_wallets.1.txt furu_wallets.2.txt | uniq > furu_wallets.txt");
   */
+  
   
 
   // get the approval data and allowance
@@ -221,13 +249,14 @@ async function main() {
   const loss_output_file = 'wallet_loss.txt'; 
   const token_file = 'token_info.txt'
 
+  
   /*
   const wallet_data = await exec_command("cat furu_wallets.txt")
   const wallets = wallet_data.split("\n");
   await fs.writeFile(output_file, '', {flag: "w"});
   for (var w = 0 ; w < wallets.length ; w ++) {
       const result = await getApprovals(wallets[w], furucombo_contract,
-                                        first_furu_block, last_furu_block)
+                                        1, last_furu_block)
       if (result) {
         await fs.writeFile(output_file, result, {flag: "a"});
       }
@@ -241,10 +270,21 @@ async function main() {
     const price = token2usd[token].usd_price || 0
     await fs.writeFile(token_file, `${token}\t${symbol}\t${price}\n`, {flag: "a"});
   }
-  */
-
 
   await outputLoss(output_file, token_file, loss_output_file); 
+  */
+  await fs.writeFile("furu_approval.txt", "", {flag: "w"});
+  const block_range = 5000
+  var block_start = first_furu_block
+  while (block_start <= last_furu_block) {
+    var block_end = block_start + block_range - 1
+    if (block_end > last_furu_block) {
+      block_end = last_furu_block
+    }
+    const results = await  getApprovalsForContract(furucombo_contract, block_start, block_end);
+    await fs.writeFile("furu_approval.txt", results, {flag: "a"});
+    block_start += block_range 
+  }
   
 }
 
