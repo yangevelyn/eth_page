@@ -72,7 +72,7 @@ async function getBalanceList(){
   });
   return Promise.allSettled(list)
   .then(async () => {
-    addressList = tokenlist.map((token) => token.address);
+    addressList = relevantTokenList.map((token) => token.address);
 
     //split into calls of maximum length 100
     addrStrList = [];
@@ -142,6 +142,10 @@ async function setHTML(balanceList, ethBalance){
   balanceList.map((token) => {
     if(token.balance !== 0){
       let node = document.createElement("tr");
+      if(token.symbol != 'ETH'){
+        node.dataset.toggle = "popover";
+        node.title = token.address;
+      }
       let symbol = document.createElement("th");
       let logo = document.createElement("img");
       let symbolName = document.createElement("div");
@@ -167,11 +171,19 @@ async function setHTML(balanceList, ethBalance){
       node.appendChild(balance);
       node.appendChild(usd);
       document.getElementById("token-list").appendChild(node);
+      
     }
+  })
+  $(function () {
+    $('[data-toggle="popover"]').popover()
   })
 }
 
 async function init_balance(){
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+  })
+
   const token_json = require("./tokenlist.json");
   tokenlist = token_json.tokens;
 
