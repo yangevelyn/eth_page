@@ -55,7 +55,7 @@ async function getApprovalsForContract(contract, fromBlock = 1, toBlock ='latest
       const approval = res_list[j]
       const t0 = approval.topics[0]
       const t2 =  approval.topics[2]
-      const wallet =  approval.topics[1]
+      const wallet =  approval.topics[1].replace(/^0x0*/, "0x")
       const token = approval.address
       const tlimit =  approval.data 
       output_string += `${wallet}\t${token}\t${tlimit}\n`
