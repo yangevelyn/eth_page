@@ -1,8 +1,8 @@
 var Web3 = require('web3');
-var web3 = new Web3(window.ethereum || 'https://eth-mainnet.alchemyapi.io/v2/ZiRLHRMU4UKAJ8mPEvTbJq35YdCm5MxJ');
+var web3 = new Web3(window.ethereum || 'https://eth-mainnet.alchemyapi.io/v2/yqxbxAize0IkxzqL7uMLg1BeeNpql0pi');
 
 //etherscan api key
-// const API_KEY = 'B62JERIYMBVDVNDSCVUCHRBRN49XXN1DYJ';
+// const API_KEY = 'WWQ7RBAZWWC9NGV61ITZEV4S7TTBRBQGK1;
 const API_KEY = '';
 
 // https://www.shawntabrizi.com/ethereum/ethereum-token-contract-abi-web3-erc-20-human-standard-tokens/

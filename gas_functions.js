@@ -6,8 +6,7 @@ const ERC20Contract = require('erc20-contract-js');
 const Uniswap = require('@uniswap/sdk')
 
 //https://github.com/sebs/etherscan-api
-const API_KEY = 'B62JERIYMBVDVNDSCVUCHRBRN49XXN1DYJ';
-// const API_KEY = '';
+const API_KEY = 'WWQ7RBAZWWC9NGV61ITZEV4S7TTBRBQGK1';
 var api;
 var api = require('etherscan-api').init(API_KEY);
 

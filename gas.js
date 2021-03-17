@@ -48,8 +48,8 @@ function setAccount(){
 
 function init_gas(){
   document.getElementById('submitButton').onclick = setAccount;
-  document.getElementById('accountInput').value = '0x660939b21C0ac3339A98dB9FFBdA74Cd59E07685';
-  account = '0x660939b21C0ac3339A98dB9FFBdA74Cd59E07685';
+  document.getElementById('accountInput').value = '0xc7C7E015D9BcA202c7f118D54da6D5d34c018B00';
+  account = '0xc7C7E015D9BcA202c7f118D54da6D5d34c018B00';
   main();
 }
 
