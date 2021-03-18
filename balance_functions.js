@@ -75,8 +75,8 @@ async function getTokenBalance(item, account, block){
   })
 }
 
-//get token's usd price from geckocoin
-async function getUSDFromGeckocoin(item){
+//get token's usd price from coingecko
+async function getUSDFromCoingecko(item){
   let apiUrl = `https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${item}&vs_currencies=usd`
   try {
     return axios.get(apiUrl)
@@ -108,7 +108,7 @@ async function getBalanceList(account, block){
 
     //call geckocoin to convert to usd
     let promises = await addrStrList.map(async (item) => {
-      return await getUSDFromGeckocoin(item)
+      return await getUSDFromCoingecko(item)
       .then((res) => {
         for(const prop in res.data){
           //add current price in usd to balanceList

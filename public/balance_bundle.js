@@ -1,8 +1,6 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 const {getBalanceList, getETHBalance} = require('./balance_functions');
 
-let tokenlist;
-
 var account = '0xc7C7E015D9BcA202c7f118D54da6D5d34c018B00';
 var block = 11900892;
 
@@ -172,8 +170,8 @@ async function getTokenBalance(item, account, block){
   })
 }
 
-//get token's usd price from geckocoin
-async function getUSDFromGeckocoin(item){
+//get token's usd price from coingecko
+async function getUSDFromCoingecko(item){
   let apiUrl = `https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${item}&vs_currencies=usd`
   try {
     return axios.get(apiUrl)
@@ -205,7 +203,7 @@ async function getBalanceList(account, block){
 
     //call geckocoin to convert to usd
     let promises = await addrStrList.map(async (item) => {
-      return await getUSDFromGeckocoin(item)
+      return await getUSDFromCoingecko(item)
       .then((res) => {
         for(const prop in res.data){
           //add current price in usd to balanceList
