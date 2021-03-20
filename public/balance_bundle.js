@@ -8,11 +8,16 @@ function setInput(){
   document.getElementById("token-list").innerHTML = '';
   account = document.getElementById("account-input").value;
   block = document.getElementById("block-input").value;
+  document.getElementById('spinner').style.display = 'block';
   main();
 }
 
 async function setHTML(balanceList){
-  document.getElementById("account").innerHTML = account;
+  let accountHTML = document.getElementById("account");
+  accountHTML.innerHTML = account;
+  accountHTML.dataset.toggle = "popover";
+  accountHTML.dataset.content = `<a href='https://etherscan.io/address/${account}'>Etherscan page</a>`
+  accountHTML.title = account;
   document.getElementById("block").innerHTML = block;
   // document.getElementById("balance").innerHTML = ethBalance;
 
@@ -53,12 +58,13 @@ async function setHTML(balanceList){
   $(function () {
     $('[data-toggle="popover"]').popover({html: true})
   })
+  document.getElementById('spinner').style.display = 'none';
 }
 
 async function init_balance(){
   document.getElementById('balance-submit').onclick = setInput;
   document.getElementById('account-input').value = account;
-  document.getElementById('block-input').value = block;
+  document.getElementById('block-input').value = '';
 
   main();
 }
@@ -71,8 +77,9 @@ async function main(){
       //get eth balance in usd
       await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
       .then((res) => {
-        balanceList.sort((a, b) => (b.balance) - (a.balance));
-        console.log(balanceList);
+        //convert to array
+        balanceList = Object.values(balanceList);
+        balanceList.sort((a, b) => (b.balance * b.usd) - (a.balance * a.usd));
 
         //add eth balance to balanceList
         let ethUSD = res.data.ethereum.usd;
@@ -97,8 +104,8 @@ var Web3 = require('web3');
 var web3 = new Web3(window.ethereum || 'https://eth-mainnet.alchemyapi.io/v2/yqxbxAize0IkxzqL7uMLg1BeeNpql0pi');
 
 //etherscan api key
-// const API_KEY = 'WWQ7RBAZWWC9NGV61ITZEV4S7TTBRBQGK1;
-const API_KEY = '';
+const API_KEY = 'WWQ7RBAZWWC9NGV61ITZEV4S7TTBRBQGK1';
+// const API_KEY = '';
 
 // https://www.shawntabrizi.com/ethereum/ethereum-token-contract-abi-web3-erc-20-human-standard-tokens/
 
@@ -181,44 +188,54 @@ async function getUSDFromCoingecko(item){
 }
 
 async function getBalanceList(account, block){
-  var balanceList = [];
+  var balanceList = {};
+  let addressList = [];
 
   let relevantTokenList = await getTxListFromEtherscan(account);
 
-  let promiseList = await relevantTokenList.map(async (item) => {
-    balanceList.push(await getTokenBalance(item, account, block));
-  });
-
-  return Promise.allSettled(promiseList)
-  .then(async () => {
-    let addressList = relevantTokenList.map((token) => token.address);
-
-    //split into calls of maximum length 100
-    addrStrList = [];
-    for(let i = 0; i < addressList.length / 100; i++){
-      addrStrList.push(addressList.slice(i * 100, 
-                         addressList.length < (i + 1) * 100 ? 
-                         addressList.length: (i + 1) * 100).join(","));
+  //add tokens with non-zero balance to balanceList
+  //add token address to addressList
+  for(let i = 0; i < relevantTokenList.length; i++){
+    try{
+      const token = relevantTokenList[i];
+      const balance = await getTokenBalance(token, account, block);
+      if(balance.balance > 1**-18){
+        balanceList[token.address] = balance;
+        addressList.push(token.address);
+      }
+    } catch(err){
+      console.log(err);
     }
+  }
 
-    //call geckocoin to convert to usd
-    let promises = await addrStrList.map(async (item) => {
-      return await getUSDFromCoingecko(item)
-      .then((res) => {
-        for(const prop in res.data){
-          //add current price in usd to balanceList
-          const ind = balanceList.findIndex(token => token.address == prop);
-          balanceList[ind] = {...balanceList[ind], usd: res.data[prop].usd}
+  // let addressList = relevantTokenList.map((token) => token.address);
+
+  //split into calls of maximum length 100
+  addrStrList = [];
+  for(let i = 0; i < addressList.length / 100; i++){
+    addrStrList.push(addressList.slice(i * 100, 
+                        addressList.length < (i + 1) * 100 ? 
+                        addressList.length: (i + 1) * 100).join(","));
+  }
+
+  //call coingecko api on each chunk of 100 to get usd prices
+  for(let i = 0; i < addrStrList.length; i++){
+    try{
+      const chunk = addrStrList[i];
+      const usdList = await getUSDFromCoingecko(chunk);
+      for(const token in usdList.data){
+        if(balanceList.hasOwnProperty(token)){
+          balanceList[token] = {...balanceList[token], usd: usdList.data[token].usd};
         }
-      });
-    })
+        //add current price in usd to balanceList
+      }
+    } catch(err){
+      console.log(err);
+    }
+  }
 
-    //return balanceList
-    return Promise.allSettled(promises)
-    .then(() => {
-      return balanceList;
-    })
-  });
+  // console.log(balanceList);
+  return balanceList;
 }
 
 async function getETHBalance(account, block){

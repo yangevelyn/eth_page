@@ -41,7 +41,7 @@
       </div>
       <div class="mb-3">
         <label for="block-input" class="form-label">Enter a block number</label>
-        <input class="form-control" id="block-input">
+        <input class="form-control" id="block-input" placeholder="11900892, earliest, latest, etc.">
       </div>
       <button id="balance-submit" type="button" class="btn btn-primary">Submit</button>
     </form>
@@ -69,6 +69,7 @@
         <tbody id="token-list">
         </tbody>
       </table>
+      <div class="spinner-border mx-auto" role="status" id="spinner"></div>
     </div>
     <div>*Balance in USD is calculated using <em>current</em> price conversion.</div>
   </div>

@@ -7,11 +7,16 @@ function setInput(){
   document.getElementById("token-list").innerHTML = '';
   account = document.getElementById("account-input").value;
   block = document.getElementById("block-input").value;
+  document.getElementById('spinner').style.display = 'block';
   main();
 }
 
 async function setHTML(balanceList){
-  document.getElementById("account").innerHTML = account;
+  let accountHTML = document.getElementById("account");
+  accountHTML.innerHTML = account;
+  accountHTML.dataset.toggle = "popover";
+  accountHTML.dataset.content = `<a href='https://etherscan.io/address/${account}'>Etherscan page</a>`
+  accountHTML.title = account;
   document.getElementById("block").innerHTML = block;
   // document.getElementById("balance").innerHTML = ethBalance;
 
@@ -52,12 +57,13 @@ async function setHTML(balanceList){
   $(function () {
     $('[data-toggle="popover"]').popover({html: true})
   })
+  document.getElementById('spinner').style.display = 'none';
 }
 
 async function init_balance(){
   document.getElementById('balance-submit').onclick = setInput;
   document.getElementById('account-input').value = account;
-  document.getElementById('block-input').value = block;
+  document.getElementById('block-input').value = '';
 
   main();
 }
@@ -70,8 +76,9 @@ async function main(){
       //get eth balance in usd
       await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
       .then((res) => {
-        balanceList.sort((a, b) => (b.balance) - (a.balance));
-        console.log(balanceList);
+        //convert to array
+        balanceList = Object.values(balanceList);
+        balanceList.sort((a, b) => (b.balance * b.usd) - (a.balance * a.usd));
 
         //add eth balance to balanceList
         let ethUSD = res.data.ethereum.usd;

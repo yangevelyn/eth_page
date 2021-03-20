@@ -5,6 +5,7 @@ let allTransactions = [];
 let account = "";
 
 async function main() {
+  document.getElementById('spinner').style.display = 'block';
   const hash = '0x66d2e5193663cf84f462dd34998d1b4d9d027c4c96a89379e8dfedee7d8c33bf';
   const contract = '0x17e8ca1b4798b97602895f63206afcd1fc90ca5f'
 
@@ -36,6 +37,7 @@ async function main() {
     document.getElementById("account").innerHTML = account;
     document.getElementById("balance").innerHTML = res.balance/(10**18);
     document.getElementById("gas").innerHTML = totalGas;
+    document.getElementById('spinner').style.display = 'none';
   });
 }
 
