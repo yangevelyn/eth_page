@@ -106,8 +106,6 @@ async function getBalanceList(account, block){
     }
   }
 
-  // let addressList = relevantTokenList.map((token) => token.address);
-
   //split into calls of maximum length 100
   addrStrList = [];
   for(let i = 0; i < addressList.length / 100; i++){
@@ -142,8 +140,5 @@ async function getETHBalance(account, block){
     return web3.utils.fromWei(bal);
   })
 }
-
-//window.onload = init_balance;
-// main();
 
 module.exports = {getBalanceList, getETHBalance};

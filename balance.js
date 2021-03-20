@@ -96,4 +96,3 @@ async function main(){
 }
 
 window.onload = init_balance;
-// main();
