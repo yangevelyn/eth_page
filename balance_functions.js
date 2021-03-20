@@ -120,10 +120,10 @@ async function getBalanceList(account, block){
       const chunk = addrStrList[i];
       const usdList = await getUSDFromCoingecko(chunk);
       for(const token in usdList.data){
+        //add current price in usd to balanceList
         if(balanceList.hasOwnProperty(token)){
           balanceList[token] = {...balanceList[token], usd: usdList.data[token].usd};
         }
-        //add current price in usd to balanceList
       }
     } catch(err){
       console.log(err);
