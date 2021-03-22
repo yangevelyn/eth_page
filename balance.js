@@ -69,30 +69,30 @@ async function init_balance(){
 }
 
 async function main(){
-  getBalanceList(account, block)
-  .then((balanceList) => {
-    getETHBalance(account, block)
-    .then(async (ethBalance) => {
-      //get eth balance in usd
-      await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
-      .then((res) => {
-        //convert to array
-        balanceList = Object.values(balanceList);
-        balanceList.sort((a, b) => (b.balance * b.usd) - (a.balance * a.usd));
 
-        //add eth balance to balanceList
-        let ethUSD = res.data.ethereum.usd;
-        balanceList.unshift({
-          symbol: 'ETH',
-          logo: 'https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/ed396/eth-diamond-black.png',
-          balance: ethBalance,
-          usd: ethUSD
-        })
+  try {
+    var balanceList = await getBalanceList(account, block)
 
-        setHTML(balanceList);
-      })
+    // get eth data
+    const ethBalance = await getETHBalance(account, block)
+    const ethPriceRes = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
+    const ethUSD = ethPriceRes.data.ethereum.usd
+
+    //constract balance list
+    balanceList = Object.values(balanceList);
+    balanceList.sort((a, b) => (b.balance * b.usd) - (a.balance * a.usd));
+    balanceList.unshift({
+      symbol: 'ETH',
+      logo: 'https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/ed396/eth-diamond-black.png',
+      balance: ethBalance,
+      usd: ethUSD
     })
-  })
+
+    setHTML(balanceList);
+
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 window.onload = init_balance;
