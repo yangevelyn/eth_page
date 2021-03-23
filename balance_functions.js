@@ -47,6 +47,7 @@ async function getTxListFromEtherscan(account){
   let txUrl =  `https://api.etherscan.io/api?module=account&action=tokentx&address=${account}&startblock=0&endblock=latest&sort=asc&apikey=${API_KEY}`;
   return await axios.get(txUrl)
   .then(async (res) => {
+    console.log(res);
     //filter out token duplicates
     let txs = res.data.result;
     txs = await filterDuplicates(txs);

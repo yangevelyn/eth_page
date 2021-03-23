@@ -1,11 +1,14 @@
 const {getBalanceList, getETHBalance} = require('./balance_functions');
+const {prevAcc} = require('./gas');
 
 var account = '0xc7C7E015D9BcA202c7f118D54da6D5d34c018B00';
+account = localStorage.getItem("acc");
 var block = 11900892;
 
 function setInput(){
   document.getElementById("token-list").innerHTML = '';
   account = document.getElementById("account-input").value;
+  localStorage.setItem("acc", account);
   block = document.getElementById("block-input").value;
   document.getElementById('spinner').style.display = 'block';
   main();
@@ -63,7 +66,7 @@ async function setHTML(balanceList){
 async function init_balance(){
   document.getElementById('balance-submit').onclick = setInput;
   document.getElementById('account-input').value = account;
-  document.getElementById('block-input').value = '';
+  document.getElementById('block-input').value = 'latest';
 
   main();
 }

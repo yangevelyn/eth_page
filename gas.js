@@ -1,7 +1,7 @@
 const {getApprovals, gasSummary} = require('./gas_functions');
 
 let allTransactions = [];
-let account = "";
+let account = localStorage.getItem("acc");
 
 async function main() {
   document.getElementById('spinner').style.display = 'block';
@@ -43,6 +43,7 @@ async function main() {
 function setAccount(){
   document.getElementById("tx-list").innerHTML = '';
   account = document.getElementById("accountInput").value;
+  localStorage.setItem("acc", account);
   allTransactions = [];
   totalGas = 0;
   main();
@@ -50,8 +51,9 @@ function setAccount(){
 
 function init_gas(){
   document.getElementById('submitButton').onclick = setAccount;
-  document.getElementById('accountInput').value = '0xc7C7E015D9BcA202c7f118D54da6D5d34c018B00';
-  account = '0xc7C7E015D9BcA202c7f118D54da6D5d34c018B00';
+  document.getElementById('accountInput').value = account;
+  // account = '0xc7C7E015D9BcA202c7f118D54da6D5d34c018B00';
+  // localStorage.setItem("acc", account);
   main();
 }
 
