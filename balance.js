@@ -3,7 +3,7 @@ const {prevAcc} = require('./gas');
 
 var account = '0xc7C7E015D9BcA202c7f118D54da6D5d34c018B00';
 account = localStorage.getItem("acc");
-var block = 11900892;
+var block = 'latest';
 
 function setInput(){
   document.getElementById("token-list").innerHTML = '';
@@ -45,7 +45,11 @@ async function setHTML(balanceList){
       let balance = document.createElement("td");
       balance.innerHTML = token.balance;
       let usd = document.createElement("td");
-      usd.innerHTML = "$" + (Math.round((token.balance * token.usd + Number.EPSILON) * 100)/100).toLocaleString();
+      if(typeof(token.usd) == "number"){
+        usd.innerHTML = "$" + (Math.round((token.balance * token.usd + Number.EPSILON) * 100)/100).toLocaleString();
+      } else{
+        usd.innerHTML = "--";
+      }
 
       if(token.symbol == 'ETH'){
         node.style.backgroundColor = 'rgba(183,228,199,0.25)';

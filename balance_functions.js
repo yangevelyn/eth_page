@@ -15,9 +15,9 @@ const { human_standard_token_abi } = require('./token_abi');
 async function filterDuplicates(txs){
   let seen = [];
   return txs.filter((item) => {
-    let ind = seen.findIndex(e => e == item.tokenSymbol);
+    let ind = seen.findIndex(e => e == item.contractAddress);
     if(ind == -1){
-      seen.push(item.tokenSymbol);
+      seen.push(item.contractAddress);
       return true;
     }
     return false;
@@ -47,9 +47,14 @@ async function getTxListFromEtherscan(account){
   let txUrl =  `https://api.etherscan.io/api?module=account&action=tokentx&address=${account}&startblock=0&endblock=latest&sort=asc&apikey=${API_KEY}`;
   return await axios.get(txUrl)
   .then(async (res) => {
-    console.log(res);
+    console.log(res.data.result);
     //filter out token duplicates
     let txs = res.data.result;
+    for(var i = 0; i < txs.length; i++){
+      if(txs[i].tokenSymbol == 'BPT'){
+        console.log(txs[i].contractAddress);
+      }
+    }
     txs = await filterDuplicates(txs);
 
     //loop through api call results
@@ -63,17 +68,46 @@ async function getTxListFromEtherscan(account){
 
 //get an account's balance of an individual token from Web3
 async function getTokenBalance(item, account, block){
+  // let apiUrl = `https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress=${item.address}&address=${account}&tag=latest&apikey=${API_KEY}`;  
+  // return await axios.get(apiUrl)
+  // .then(async (res) => {
+  //   const bal = res.data.result;
+  //   console.log(item.symbol, item.address, bal);
+  //   return {
+  //     address: item.address,
+  //     symbol: item.symbol,
+  //     balance: bal/10**(item.decimals),
+  //     logo: item.logoURI
+  //   }
+  // })
+
   let contract = new web3.eth.Contract(human_standard_token_abi, item.address);
-  return contract.methods.balanceOf(account).call(block)
-  .then((bal) => {
-    //return an object containing token info
+
+  try{
+    const bal = await contract.methods.balanceOf(account).call(block);
+    // console.log(item.symbol, item.address, bal);
     return {
       address: item.address,
       symbol: item.symbol,
       balance: bal/10**(item.decimals),
       logo: item.logoURI
     }
-  })
+  } catch(err){
+    console.log(err);
+  }
+
+
+  // return contract.methods.balanceOf(account).call(block)
+  // .then((bal) => {
+  //   //return an object containing token info
+  //   console.log(item.symbol, item.address, bal);
+  //   return {
+  //     address: item.address,
+  //     symbol: item.symbol,
+  //     balance: bal/10**(item.decimals),
+  //     logo: item.logoURI
+  //   }
+  // })
 }
 
 //get token's usd price from coingecko
@@ -91,6 +125,7 @@ async function getBalanceList(account, block){
   let addressList = [];
 
   let relevantTokenList = await getTxListFromEtherscan(account);
+  console.log(relevantTokenList);
 
   //add tokens with non-zero balance to balanceList
   //add token address to addressList
@@ -98,6 +133,7 @@ async function getBalanceList(account, block){
     try{
       const token = relevantTokenList[i];
       const balance = await getTokenBalance(token, account, block);
+      // console.log(balance);
       if(balance.balance > 1**-18){
         balanceList[token.address] = balance;
         addressList.push(token.address);
@@ -106,6 +142,8 @@ async function getBalanceList(account, block){
       console.log(err);
     }
   }
+
+  console.log(balanceList);
 
   //split into calls of maximum length 100
   addrStrList = [];
