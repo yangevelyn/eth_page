@@ -2,13 +2,18 @@ const {getBalanceList, getETHBalance} = require('./balance_functions');
 const {prevAcc} = require('./gas');
 
 var account = '0xc7C7E015D9BcA202c7f118D54da6D5d34c018B00';
-account = localStorage.getItem("acc");
+if(document.cookie != ""){
+  account = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('acc='))
+            .split('=')[1];
+}
 var block = 'latest';
 
 function setInput(){
   document.getElementById("token-list").innerHTML = '';
   account = document.getElementById("account-input").value;
-  localStorage.setItem("acc", account);
+  document.cookie = "acc=" + account;
   block = document.getElementById("block-input").value;
   document.getElementById('spinner').style.display = 'block';
   main();

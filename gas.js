@@ -1,7 +1,13 @@
 const {getApprovals, gasSummary} = require('./gas_functions');
 
 let allTransactions = [];
-let account = localStorage.getItem("acc");
+let account = "";
+if(document.cookie != ""){
+  account = document.cookie
+              .split('; ')
+              .find(row => row.startsWith('acc='))
+              .split('=')[1];
+}
 
 async function main() {
   document.getElementById('spinner').style.display = 'block';
@@ -43,7 +49,7 @@ async function main() {
 function setAccount(){
   document.getElementById("tx-list").innerHTML = '';
   account = document.getElementById("accountInput").value;
-  localStorage.setItem("acc", account);
+  document.cookie = "acc=" + account;
   allTransactions = [];
   totalGas = 0;
   main();
