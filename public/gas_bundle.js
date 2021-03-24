@@ -2,7 +2,6 @@
 const {getApprovals, gasSummary} = require('./gas_functions');
 
 let allTransactions = [];
-// let account = localStorage.getItem("acc");
 let account = "";
 if(document.cookie != ""){
   account = document.cookie
@@ -51,7 +50,6 @@ async function main() {
 function setAccount(){
   document.getElementById("tx-list").innerHTML = '';
   account = document.getElementById("accountInput").value;
-  // localStorage.setItem("acc", account);
   document.cookie = "acc=" + account;
   allTransactions = [];
   totalGas = 0;
