@@ -62,19 +62,6 @@ async function getTxListFromEtherscan(account){
 
 //get an account's balance of an individual token from Web3
 async function getTokenBalance(item, account, block){
-  // let apiUrl = `https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress=${item.address}&address=${account}&tag=latest&apikey=${API_KEY}`;  
-  // return await axios.get(apiUrl)
-  // .then(async (res) => {
-  //   const bal = res.data.result;
-  //   console.log(item.symbol, item.address, bal);
-  //   return {
-  //     address: item.address,
-  //     symbol: item.symbol,
-  //     balance: bal/10**(item.decimals),
-  //     logo: item.logoURI
-  //   }
-  // })
-
   let contract = new web3.eth.Contract(human_standard_token_abi, item.address);
 
   try{
@@ -90,19 +77,6 @@ async function getTokenBalance(item, account, block){
   } catch(err){
     console.log(err);
   }
-
-
-  // return contract.methods.balanceOf(account).call(block)
-  // .then((bal) => {
-  //   //return an object containing token info
-  //   console.log(item.symbol, item.address, bal);
-  //   return {
-  //     address: item.address,
-  //     symbol: item.symbol,
-  //     balance: bal/10**(item.decimals),
-  //     logo: item.logoURI
-  //   }
-  // })
 }
 
 //get token's usd price from coingecko
@@ -186,32 +160,6 @@ async function getBalanceList(account, block){
   }
 
   console.log(balanceList);
-
-  //split into calls of maximum length 100
-  // addrStrList = [];
-  // for(let i = 0; i < addressList.length / 100; i++){
-  //   addrStrList.push(addressList.slice(i * 100, 
-  //                       addressList.length < (i + 1) * 100 ? 
-  //                       addressList.length: (i + 1) * 100).join(","));
-  // }
-
-  // //call coingecko api on each chunk of 100 to get usd prices
-  // for(let i = 0; i < addrStrList.length; i++){
-  //   try{
-  //     const chunk = addrStrList[i];
-  //     const usdList = await getUSDFromCoingecko(chunk);
-  //     for(const token in usdList.data){
-  //       //add current price in usd to balanceList
-  //       if(balanceList.hasOwnProperty(token)){
-  //         balanceList[token] = {...balanceList[token], usd: usdList.data[token].usd};
-  //       }
-  //     }
-  //   } catch(err){
-  //     console.log(err);
-  //   }
-  // }
-
-  // console.log(balanceList);
   return balanceList;
 }
 
