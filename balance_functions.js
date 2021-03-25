@@ -15,9 +15,9 @@ const { human_standard_token_abi } = require('./token_abi');
 async function filterDuplicates(txs){
   let seen = [];
   return txs.filter((item) => {
-    let ind = seen.findIndex(e => e == item.tokenSymbol);
+    let ind = seen.findIndex(e => e == item.contractAddress);
     if(ind == -1){
-      seen.push(item.tokenSymbol);
+      seen.push(item.contractAddress);
       return true;
     }
     return false;
@@ -63,16 +63,20 @@ async function getTxListFromEtherscan(account){
 //get an account's balance of an individual token from Web3
 async function getTokenBalance(item, account, block){
   let contract = new web3.eth.Contract(human_standard_token_abi, item.address);
-  return contract.methods.balanceOf(account).call(block)
-  .then((bal) => {
-    //return an object containing token info
+
+  try{
+    const bal = await contract.methods.balanceOf(account).call(block);
+    // console.log(item.symbol, item.address, bal);
+
     return {
       address: item.address,
       symbol: item.symbol,
       balance: bal/10**(item.decimals),
-      logo: item.logoURI
+      logo: item.logoURI 
     }
-  })
+  } catch(err){
+    console.log(err);
+  }
 }
 
 //get token's usd price from coingecko
@@ -85,52 +89,77 @@ async function getUSDFromCoingecko(item){
   }
 }
 
+async function addRowToHTML(token){
+  let node = document.createElement("tr");
+  if(token.symbol != 'ETH'){
+    node.dataset.toggle = "popover";
+    node.dataset.content = `<a href='https://etherscan.io/token/${token.address}'>Etherscan page</a>`
+    node.title = token.address;
+  }
+  let symbol = document.createElement("th");
+  let logo = document.createElement("img");
+  let symbolName = document.createElement("div");
+  logo.src = token.logo;
+  logo.height = "36";
+  symbolName.innerText = token.symbol;
+  symbolName.style.marginLeft = "8px";
+  symbol.appendChild(logo);
+  symbol.appendChild(symbolName);
+  symbol.style.display = "flex";
+  symbol.style.alignItems = "center";
+  let balance = document.createElement("td");
+  balance.innerHTML = token.balance;
+  let usd = document.createElement("td");
+  if(typeof(token.usd) == "number"){
+    usd.innerHTML = "$" + (Math.round((token.balance * token.usd + Number.EPSILON) * 100)/100).toLocaleString();
+  } else{
+    usd.innerHTML = "--";
+  }
+
+  if(token.symbol == 'ETH'){
+    node.style.backgroundColor = 'rgba(183,228,199,0.25)';
+  }
+
+  node.appendChild(symbol);
+  node.appendChild(balance);
+  node.appendChild(usd);
+  document.getElementById("token-list").appendChild(node);
+  $(function () {
+    $('[data-toggle="popover"]').popover({html: true})
+  })
+}
+
 async function getBalanceList(account, block){
   var balanceList = {};
   let addressList = [];
 
   let relevantTokenList = await getTxListFromEtherscan(account);
+  console.log(relevantTokenList);
 
   //add tokens with non-zero balance to balanceList
   //add token address to addressList
   for(let i = 0; i < relevantTokenList.length; i++){
     try{
       const token = relevantTokenList[i];
-      const balance = await getTokenBalance(token, account, block);
+      let balance = await getTokenBalance(token, account, block);
+
+      //if non-zero balance, add usd to object, add object to list
       if(balance.balance > 1**-18){
+        const usd = await getUSDFromCoingecko(token.address);
+        if(usd.data[token.address]){
+          balance = {...balance, usd: usd.data[token.address].usd};
+        }
         balanceList[token.address] = balance;
         addressList.push(token.address);
+
+        addRowToHTML(balance);
       }
     } catch(err){
       console.log(err);
     }
   }
 
-  //split into calls of maximum length 100
-  addrStrList = [];
-  for(let i = 0; i < addressList.length / 100; i++){
-    addrStrList.push(addressList.slice(i * 100, 
-                        addressList.length < (i + 1) * 100 ? 
-                        addressList.length: (i + 1) * 100).join(","));
-  }
-
-  //call coingecko api on each chunk of 100 to get usd prices
-  for(let i = 0; i < addrStrList.length; i++){
-    try{
-      const chunk = addrStrList[i];
-      const usdList = await getUSDFromCoingecko(chunk);
-      for(const token in usdList.data){
-        //add current price in usd to balanceList
-        if(balanceList.hasOwnProperty(token)){
-          balanceList[token] = {...balanceList[token], usd: usdList.data[token].usd};
-        }
-      }
-    } catch(err){
-      console.log(err);
-    }
-  }
-
-  // console.log(balanceList);
+  console.log(balanceList);
   return balanceList;
 }
 
@@ -141,4 +170,4 @@ async function getETHBalance(account, block){
   })
 }
 
-module.exports = {getBalanceList, getETHBalance};
+module.exports = {getBalanceList, getETHBalance, addRowToHTML};
