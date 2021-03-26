@@ -10,12 +10,17 @@ if(document.cookie != ""){
 }
 
 async function main() {
-  document.getElementById('spinner').style.display = 'block';
+  if(account == ""){
+    return;
+  }
+
   const hash = '0x66d2e5193663cf84f462dd34998d1b4d9d027c4c96a89379e8dfedee7d8c33bf';
   const contract = '0x17e8ca1b4798b97602895f63206afcd1fc90ca5f'
 
   let totalGas = 0;
   getApprovals(account, contract);
+  document.getElementById('spinner').style.display = 'block';
+  
   gasSummary(account, allTransactions).then((res) => {
     allTransactions.sort((a, b) => b.gasUsed - a.gasUsed);
     allTransactions.map((txn) => {

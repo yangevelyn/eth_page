@@ -1,7 +1,7 @@
 const {getBalanceList, getETHBalance, addRowToHTML} = require('./balance_functions');
 const {prevAcc} = require('./gas');
 
-var account = '0xc7C7E015D9BcA202c7f118D54da6D5d34c018B00';
+var account = "";
 if(document.cookie != ""){
   account = document.cookie
             .split('; ')
@@ -37,8 +37,8 @@ async function init_balance(){
 }
 
 async function main(){
-
   try {
+    document.getElementById('spinner').style.display = 'block';
     await setUserInfoHTML();
 
     // get eth data
@@ -60,6 +60,7 @@ async function main(){
     document.getElementById('spinner').style.display = 'none';
   } catch (error) {
     console.log(error);
+    document.getElementById('spinner').style.display = 'none';
   }
 }
 

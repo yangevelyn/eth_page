@@ -12,9 +12,13 @@ var api = require('etherscan-api').init(API_KEY);
 
 async function gasSummary(account, allTransactions) {
   let balance = 0;
-  await api.account.balance(account).then((res) => {
+  try{
+    const res = await api.account.balance(account)
     balance = res.result;
-  });
+  } catch(err){
+    console.log(err);
+  }
+  
 
   const batchSize = 100;
   var pageNum = 1;
