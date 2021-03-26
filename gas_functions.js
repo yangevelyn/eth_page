@@ -1,10 +1,3 @@
-const fetch = require("cross-fetch")
-const { Contract, providers, Wallet, utils, ethers } = require("ethers")
-const AmmReaderArtifact = require("@perp/contract/build/contracts/AmmReader.json")
-const InsuranceFundArtifact = require("@perp/contract/build/contracts/InsuranceFund.json")
-const ERC20Contract = require('erc20-contract-js');
-const Uniswap = require('@uniswap/sdk')
-
 //https://github.com/sebs/etherscan-api
 const API_KEY = 'WWQ7RBAZWWC9NGV61ITZEV4S7TTBRBQGK1';
 var api;
