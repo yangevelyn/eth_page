@@ -2,12 +2,22 @@ const {getBalanceList, getETHBalance, addRowToHTML} = require('./balance_functio
 const {prevAcc} = require('./gas');
 
 var account = "";
-if(document.cookie != ""){
-  account = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('acc='))
-            .split('=')[1];
-}
+// var searchParams = new URLSearchParams(window.location.href);
+// if(searchParams.has("address")){
+//   account = searchParams.get("address");
+//   document.cookie = "acc=" + account;
+// } else{
+//   if(document.cookie != ""){
+//     console.log('has cookie');
+//     account = document.cookie
+//               .split('; ')
+//               .find(row => row.startsWith('acc='))
+//               .split('=')[1];
+//     console.log(window.location.href.split('?'));
+//     // window.location.href = window.location.href.split('?') + "?address=" + account; 
+//   }
+// }
+
 var block = 'latest';
 
 function setInput(){
@@ -17,21 +27,61 @@ function setInput(){
   block = document.getElementById("block-input").value;
   document.getElementById('spinner').style.display = 'block';
   main();
+
+  window.location.href = window.location.href.split('?')[0] + "?address=" + account;
+}
+
+async function copyShareLink(){
+  try{
+    await navigator.clipboard.writeText(window.location.href);
+    var share = document.getElementById('share');
+    share.classList.replace('btn-light', 'btn-success');
+    share.innerHTML = "URL copied!";
+  } catch(err){
+    console.log(err);
+  }
 }
 
 async function setUserInfoHTML(){
   let accountHTML = document.getElementById("account");
   accountHTML.innerHTML = account;
   accountHTML.dataset.toggle = "popover";
-  accountHTML.dataset.content = `<a href='https://etherscan.io/address/${account}'>Etherscan page</a>`
+  accountHTML.dataset.content = `<a href='https://etherscan.io/address/${account}'>Etherscan page</a>`;
   accountHTML.title = account;
   document.getElementById("block").innerHTML = block;
+  var share = document.getElementById("share");
+  share.style.display = 'block';
+  share.classList.replace('btn-success', 'btn-light');
+  share.innerHTML = `<i class="fa fa-share"></i>&nbsp;Share`;
+  if(account == ""){
+    document.getElementById("share").style.display = "none";
+  }
+}
+
+function getCookie(){
+  var searchParams = new URLSearchParams(window.location.search);
+  if(searchParams.has("address") === true){
+    account = searchParams.get("address");
+    document.cookie = "acc=" + account;
+  } else{
+    if(document.cookie != ""){
+      account = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('acc='))
+                .split('=')[1];
+      if(account != ""){
+        window.location.href = window.location.href.split('?')[0] + "?address=" + account;
+      }
+    }
+  }
 }
 
 async function init_balance(){
+  getCookie();
   document.getElementById('balance-submit').onclick = setInput;
   document.getElementById('account-input').value = account;
   document.getElementById('block-input').value = 'latest';
+  document.getElementById("share").onclick = copyShareLink;
 
   main();
 }
