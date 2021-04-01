@@ -46,7 +46,7 @@ async function main() {
   });
 }
 
-async function copyShareLink(){
+async function copyGasLink(){
   try{
     await navigator.clipboard.writeText(window.location.href);
     var share = document.getElementById('share');
@@ -99,7 +99,7 @@ function init_gas(){
   getCookie();
   document.getElementById('submitButton').onclick = setAccount;
   document.getElementById('accountInput').value = account;
-  document.getElementById("share").onclick = copyShareLink;
+  document.getElementById("share").onclick = copyGasLink;
   if(account == ""){
     document.getElementById("share").style.display = "none";
   }

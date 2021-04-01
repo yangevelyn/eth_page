@@ -31,7 +31,7 @@ function setInput(){
   window.location.href = window.location.href.split('?')[0] + "?address=" + account;
 }
 
-async function copyShareLink(){
+async function copyBalanceLink(){
   try{
     await navigator.clipboard.writeText(window.location.href);
     var share = document.getElementById('share');
@@ -81,7 +81,7 @@ async function init_balance(){
   document.getElementById('balance-submit').onclick = setInput;
   document.getElementById('account-input').value = account;
   document.getElementById('block-input').value = 'latest';
-  document.getElementById("share").onclick = copyShareLink;
+  document.getElementById("share").onclick = copyBalanceLink;
 
   main();
 }

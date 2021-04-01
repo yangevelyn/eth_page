@@ -32,7 +32,7 @@ function setInput(){
   window.location.href = window.location.href.split('?')[0] + "?address=" + account;
 }
 
-async function copyShareLink(){
+async function copyBalanceLink(){
   try{
     await navigator.clipboard.writeText(window.location.href);
     var share = document.getElementById('share');
@@ -82,7 +82,7 @@ async function init_balance(){
   document.getElementById('balance-submit').onclick = setInput;
   document.getElementById('account-input').value = account;
   document.getElementById('block-input').value = 'latest';
-  document.getElementById("share").onclick = copyShareLink;
+  document.getElementById("share").onclick = copyBalanceLink;
 
   main();
 }
@@ -340,7 +340,7 @@ async function main() {
   });
 }
 
-async function copyShareLink(){
+async function copyGasLink(){
   try{
     await navigator.clipboard.writeText(window.location.href);
     var share = document.getElementById('share');
@@ -393,7 +393,7 @@ function init_gas(){
   getCookie();
   document.getElementById('submitButton').onclick = setAccount;
   document.getElementById('accountInput').value = account;
-  document.getElementById("share").onclick = copyShareLink;
+  document.getElementById("share").onclick = copyGasLink;
   if(account == ""){
     document.getElementById("share").style.display = "none";
   }
