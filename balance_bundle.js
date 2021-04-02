@@ -313,6 +313,7 @@ async function main() {
   gasSummary(account, allTransactions).then((res) => {
     allTransactions.sort((a, b) => b.blockNumber - a.blockNumber);
     allTransactions.map((txn) => {
+      console.log(txn);
       const gasFee = parseInt(txn.gasPrice)/10**18*parseInt(txn.gasUsed)
       totalGas += gasFee
 
@@ -322,9 +323,9 @@ async function main() {
       let timeStamp = document.createElement("TD");
       timeStamp.innerHTML = txn.timeStamp;
       let hash = document.createElement("TD");
-      hash.innerHTML = txn.hash;
+      hash.innerHTML = `<a target="_blank" href='https://etherscan.io/tx/${txn.hash}'>${txn.hash.substring(0, 10) + '...'}</a>`;
       let gasFeeText = document.createElement("TD");
-      gasFeeText.innerHTML = gasFee;
+      gasFeeText.innerHTML = gasFee.toFixed(6);
 
       node.dataset.toggle = "popover";
       node.dataset.content = `<a target="_blank" href='https://etherscan.io/tx/${txn.hash}'>Etherscan page</a>`
@@ -333,6 +334,7 @@ async function main() {
       node.appendChild(block);
       node.appendChild(timeStamp);
       node.appendChild(gasFeeText);
+      node.appendChild(hash);
       document.getElementById("tx-list").appendChild(node);
     })
 
