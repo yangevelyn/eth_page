@@ -93,7 +93,7 @@ async function addRowToHTML(token){
   let node = document.createElement("tr");
   if(token.symbol != 'ETH'){
     node.dataset.toggle = "popover";
-    node.dataset.content = `<a href='https://etherscan.io/token/${token.address}'>Etherscan page</a>`
+    node.dataset.content = `<a target="_blank" href='https://etherscan.io/token/${token.address}'>Etherscan page</a>`
     node.title = token.address;
   }
   let symbol = document.createElement("th");
