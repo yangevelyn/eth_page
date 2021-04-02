@@ -213,7 +213,7 @@ async function addRowToHTML(token){
   let node = document.createElement("tr");
   if(token.symbol != 'ETH'){
     node.dataset.toggle = "popover";
-    node.dataset.content = `<a href='https://etherscan.io/token/${token.address}'>Etherscan page</a>`
+    node.dataset.content = `<a target="_blank" href='https://etherscan.io/token/${token.address}'>Etherscan page</a>`
     node.title = token.address;
   }
   let symbol = document.createElement("th");
@@ -311,7 +311,7 @@ async function main() {
   document.getElementById('spinner').style.display = 'block';
   
   gasSummary(account, allTransactions).then((res) => {
-    allTransactions.sort((a, b) => b.gasUsed - a.gasUsed);
+    allTransactions.sort((a, b) => b.blockNumber - a.blockNumber);
     allTransactions.map((txn) => {
       const gasFee = parseInt(txn.gasPrice)/10**18*parseInt(txn.gasUsed)
       totalGas += gasFee
@@ -326,6 +326,10 @@ async function main() {
       let gasFeeText = document.createElement("TD");
       gasFeeText.innerHTML = gasFee;
 
+      node.dataset.toggle = "popover";
+      node.dataset.content = `<a target="_blank" href='https://etherscan.io/tx/${txn.hash}'>Etherscan page</a>`
+      node.title = txn.hash;
+
       node.appendChild(block);
       node.appendChild(timeStamp);
       node.appendChild(gasFeeText);
@@ -333,10 +337,18 @@ async function main() {
     })
 
     console.log(res);
-    document.getElementById("account").innerHTML = account;
+    let accountHTML = document.getElementById("account");
+    accountHTML.innerHTML = account;
+    accountHTML.dataset.toggle = "popover";
+    accountHTML.dataset.content = `<a href='https://etherscan.io/address/${account}'>Etherscan page</a>`;
+    accountHTML.title = account;
     document.getElementById("balance").innerHTML = res.balance/(10**18);
     document.getElementById("gas").innerHTML = totalGas;
     document.getElementById('spinner').style.display = 'none';
+
+    $(function () {
+      $('[data-toggle="popover"]').popover({html: true})
+    })
   });
 }
 
