@@ -64,9 +64,18 @@
       <table class="table mx-auto table-hover">
         <thead>
           <tr>
-            <th scope="col">Block #</th>
-            <th scope="col">Timestamp</th>
-            <th scope="col">Gas Fee</th>
+            <th scope="col" id="block-head">
+              Block #&nbsp;
+              <i id="block-sort" class="fa fa-sort-down" style="color: slategrey;"></i>
+            </th>
+            <th scope="col" id="time-head">
+              Timestamp&nbsp;
+              <i id="time-sort" class="fa fa-sort" style="color: lightgrey;"></i>
+            </th>
+            <th scope="col" id="gas-head">
+              Gas Fee&nbsp;
+              <i id="gas-sort" class="fa fa-sort" style="color: lightgrey;"></i>
+            </th>
             <th scope="col">Tx Hash</th>
           </tr>
         </thead>
