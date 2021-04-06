@@ -1,5 +1,4 @@
 const {getBalanceList, getETHBalance, addRowToHTML} = require('./balance_functions');
-const {prevAcc} = require('./gas');
 
 var account = "";
 // var searchParams = new URLSearchParams(window.location.href);
@@ -18,17 +17,19 @@ var account = "";
 //   }
 // }
 
-var block = 'latest';
+var block = "";
 
 function setInput(){
   document.getElementById("token-list").innerHTML = '';
   account = document.getElementById("account-input").value;
   document.cookie = "acc=" + account;
   block = document.getElementById("block-input").value;
+  document.cookie = "block=" + block;
   document.getElementById('spinner').style.display = 'block';
   main();
 
-  window.location.href = window.location.href.split('?')[0] + "?address=" + account;
+  console.log(block);
+  window.location.href = window.location.href.split('?')[0] + "?address=" + account + "&block=" + block;
 }
 
 async function copyBalanceLink(){
@@ -59,6 +60,25 @@ async function setUserInfoHTML(){
 }
 
 function getCookie(){
+  // var searchParams = new URLSearchParams(window.location.search);
+  // if(searchParams.has("address") === true){
+  //   account = searchParams.get("address");
+  //   console.log(account);
+  //   document.cookie = "acc=" + account;
+  // } else{
+  //   if(document.cookie != ""){
+  //     console.log(document.cookie);
+  //     account = document.cookie
+  //               .split('; ')
+  //               .find(row => row.startsWith('acc='))
+  //               .split('=')[1];
+  //     console.log(account);
+  //     if(account != ""){
+  //       window.location.href = window.location.href.split('?')[0] + "?address=" + account;
+  //     }
+  //   }
+  // }
+
   var searchParams = new URLSearchParams(window.location.search);
   if(searchParams.has("address") === true){
     account = searchParams.get("address");
@@ -67,10 +87,28 @@ function getCookie(){
     if(document.cookie != ""){
       account = document.cookie
                 .split('; ')
-                .find(row => row.startsWith('acc='))
-                .split('=')[1];
+                .find(row => row.startsWith('acc='));
+      if(account != undefined){
+        account = account.split('=')[1];
+      }
       if(account != ""){
-        window.location.href = window.location.href.split('?')[0] + "?address=" + account;
+        window.location.search += "&address=" + account;
+      }
+    }
+  }
+  if(searchParams.has("block") === true){
+    block = searchParams.get("block");
+    document.cookie = "block=" + block;
+  } else{
+    if(document.cookie != ""){
+      block = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('block='))
+      if(block != undefined){
+        block = block.split('=')[1];
+      }      
+      if(block != ""){
+        window.location.search += "&block=" + block;
       }
     }
   }
@@ -80,13 +118,19 @@ async function init_balance(){
   getCookie();
   document.getElementById('balance-submit').onclick = setInput;
   document.getElementById('account-input').value = account;
-  document.getElementById('block-input').value = 'latest';
+  document.getElementById('block-input').value = block;
   document.getElementById("share").onclick = copyBalanceLink;
+
+  document.cookie = "acc=" + account;
+  document.cookie = "block=" + block;
 
   main();
 }
 
 async function main(){
+  if(account == "" || block == ""){
+    return;
+  }
   try {
     document.getElementById('spinner').style.display = 'block';
     await setUserInfoHTML();

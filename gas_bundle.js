@@ -7,7 +7,6 @@ let sortingBy = 'block';
 let down = true;
 
 function setTableHTML(allTransactions, sortBy, reverse){
-  console.log('in set table html');
   //clear list
   document.getElementById('tx-list').innerHTML = `<tbody id="tx-list"></tbody>`;
 
@@ -142,11 +141,15 @@ function sort(type){
   document.getElementById('gas-sort').style = "color: lightgrey;";
 
   let icon = document.getElementById(`${type}-sort`);
+
+  //reverse if already sorting by this type
   if(sortingBy == type){
     down = !down;
   } else{
     down = true;
   }
+
+  //set icon
   down ? 
     icon.classList.replace('fa-sort', 'fa-sort-down') : 
     icon.classList.replace('fa-sort', 'fa-sort-up');
