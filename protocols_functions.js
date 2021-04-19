@@ -1,3 +1,5 @@
+// var {graphql, buildSchema} = require('graphql');
+
 var Web3 = require('web3');
 var web3 = new Web3(window.ethereum || 'https://eth-mainnet.alchemyapi.io/v2/yqxbxAize0IkxzqL7uMLg1BeeNpql0pi');
 
@@ -9,7 +11,7 @@ const API_KEY = 'WWQ7RBAZWWC9NGV61ITZEV4S7TTBRBQGK1';
 
 const token_json = require("./tokenlist.json");
 var tokenlist = token_json.tokens;
-const { human_standard_token_abi, curve_abi, aave_abi, compound_abi } = require('./token_abi');
+const { human_standard_token_abi, curve_abi, aave_abi, compound_abi, ceth_abi } = require('./token_abi');
 
 //get list of Curve's pools
 async function getCurveList(){
@@ -31,17 +33,23 @@ async function getCurveList(){
   }
 }
 
-// get list of AAVE's tokens
-async function getAAVEList(){
+// get list of Aave's tokens
+async function getAaveList(){
   let contract = new web3.eth.Contract(aave_abi, '0x057835Ad21a177dbdd3090bB1CAE03EaCF78Fc6d');
 
   try{
     const tokenList = await contract.methods.getAllReservesTokens().call();
     let assetList = [];
     for(let i = 0; i < tokenList.length; i++){
-      const tokenAddress = await contract.methods.getReserveTokensAddresses(tokenList[i][1]).call();
-      assetList.push({[tokenList[i][0]]: tokenAddress});
+      // const tokenAddress = await contract.methods.getReserveTokensAddresses(tokenList[i][1]).call();
+      // assetList.push({[tokenList[i][0]]: tokenAddress});
       // console.log(tokenAddress);
+      const data = await contract.methods.getReserveData(tokenList[i][1]).call();
+      assetList.push({[tokenList[i][0]]: {
+        deposit_apy: (parseInt(data.liquidityRate) / 10**25).toFixed(2),
+        borrow_apy_var: (parseInt(data.variableBorrowRate) / 10**25).toFixed(2),
+        borrow_apy_s: (parseInt(data.stableBorrowRate) / 10**25).toFixed(2),
+      }});
     }
     return assetList;
   } catch(err){
@@ -51,18 +59,134 @@ async function getAAVEList(){
 
 // get list of Compound's markets
 async function getCompoundList(){
+  let url = 'https://api.compound.finance/api/v2/ctoken';
+
+  return await axios.get(url)
+  .then((res) => {
+    console.log(res.data.cToken);
+    return res.data.cToken.map((token) => {
+      // console.log(token.comp_supply_apy);
+      return {
+        underlying_name: token.underlying_name, 
+        underlying_symbol: token.underlying_symbol, 
+        borrow_rate: parseFloat(token.borrow_rate.value) * 100, 
+        supply_rate: parseFloat(token.supply_rate.value) * 100, 
+        comp_borrow_apy: parseFloat(token.comp_borrow_apy.value), 
+        comp_supply_apy: parseFloat(token.comp_supply_apy.value)
+      };
+    });
+  })
+}
+
+// get list of Compound's markets
+async function getCompoundListGraph(){
+  let url = 'https://api.thegraph.com/subgraphs/name/graphprotocol/compound-v2';
+  let data = {
+    query: `{
+      markets {
+        name
+        symbol
+        id
+        supplyRate
+        borrowRate
+        underlyingSymbol
+      }
+    }`
+  }
+
+  return await axios.post(url, data)
+  .then((res) => {
+    console.log(res.data.data.markets);
+    return res.data.data.markets;
+  })
+  
+}
+
+async function getCompoundListWeb3(){
   let contract = new web3.eth.Contract(compound_abi, '0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B');
 
   try{
     const marketList = await contract.methods.getAllMarkets().call();
+    console.log(marketList);
+    let cToken = new web3.eth.Contract(ceth_abi, marketList[0]);
+    const ethMantissa = 1e18;
+    const blocksPerDay = 4 * 60 * 24;
+    const daysPerYear = 365;
+
+    // const cToken = new web3.eth.Contract(cEthAbi, cEthAddress);
+    const supplyRatePerBlock = await cToken.methods.supplyRatePerBlock().call(12253933);
+    const borrowRatePerBlock = await cToken.methods.borrowRatePerBlock().call(12253933);
+    const supplyApy = (((Math.pow((supplyRatePerBlock / ethMantissa * blocksPerDay) + 1, daysPerYear))) - 1) * 100;
+    const borrowApy = (((Math.pow((borrowRatePerBlock / ethMantissa * blocksPerDay) + 1, daysPerYear))) - 1) * 100;
+    console.log(`Supply APY for ETH ${supplyApy} %`);
+    console.log(`Borrow APY for ETH ${borrowApy} %`);
+    // const cToken = CEther.at(marketList[0]);
+    // const borrowRate = (await cToken.methods.borrowRatePerBlock().call()) / 1e18;
+    console.log(borrowRate);
     return marketList;
   } catch(err){
     console.log(err);
   }
 }
 
-// module.exports = {getBalanceList, getETHBalance, addRowToHTML};
+async function addRowToHTML(token){
+  //get logo if in token is in token_abi.json
+  const ind = tokenlist.findIndex(i => i.symbol == token.underlying_symbol);
+  let logo = "";
+  if(ind != -1){
+    logo = tokenlist[ind].logoURI;
+  }
 
-getAAVEList().then(res => {
-    console.log(res);
-});
+  let node = document.createElement("tr");
+  let market = document.createElement("th");
+  let logoHTML = document.createElement("img");
+  let tokenText = document.createElement("div");
+  let name = document.createElement("div");
+  let symbol = document.createElement("div");
+  logoHTML.src = logo;
+  logoHTML.height = "36";
+  name.innerText = token.underlying_name;
+  name.style.marginLeft = "8px";
+  symbol.innerText = token.underlying_symbol;
+  symbol.style.marginLeft = "8px";
+  tokenText.appendChild(name);
+  tokenText.appendChild(symbol);
+  market.appendChild(logoHTML);
+  market.appendChild(tokenText);
+  market.style.display = "flex";
+  market.style.alignItems = "center";
+
+  let supply = document.createElement("td");
+  supply.innerHTML = token.supply_rate.toFixed(2) + "%";
+  let comp_supply = document.createElement("td");
+  comp_supply.innerHTML = token.comp_supply_apy.toFixed(2) + "%";
+  let borrow = document.createElement("td");
+  borrow.innerHTML = token.borrow_rate.toFixed(2) + "%";
+  let comp_borrow = document.createElement("td");
+  comp_borrow.innerHTML = token.comp_borrow_apy.toFixed(2) + "%";
+
+  node.appendChild(market);
+  node.appendChild(supply);
+  node.appendChild(comp_supply);
+  node.appendChild(borrow);
+  node.appendChild(comp_borrow);
+  document.getElementById("mk-list").appendChild(node);
+  $(function () {
+    $('[data-toggle="popover"]').popover({html: true})
+  })
+  //http://bootply.com/99372
+  $('body').on('click', function (e) {
+      $('[data-toggle=popover]').each(function () {
+          // hide any open popovers when the anywhere else in the body is clicked
+          if (!$(this).is(e.target) && $(this).has(e.target).length === 0 && $('.popover').has(e.target).length === 0) {
+              $(this).popover('hide');
+          }
+      });
+  });
+}
+
+getAaveList().then((res) => {
+  console.log(res);
+})
+
+module.exports = {getCurveList, getAaveList, getCompoundList, addRowToHTML};
