@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify gas.js -o gas_bundle.js && browserify balance.js -o balance_bundle.js && browserify protocols.js -o protocols_bundle.js",
+    "build": "browserify gas.js -o gas_bundle.js && browserify balance.js -o balance_bundle.js && browserify compound.js -o compound_bundle.js && browserify aave.js -o aave_bundle.js",
     "start": "node server.js"
   },
   "keywords": [],
