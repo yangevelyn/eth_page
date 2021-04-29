@@ -1,4 +1,4 @@
-const {getCurveList, getAaveList, getCompoundList, addRowToHTML} = require('./aave_functions');
+const {getAaveList, addRowToHTML} = require('./aave_functions');
 
 let sortBy = "deposit";
 let reverse = true;

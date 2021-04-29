@@ -1,4 +1,4 @@
-const {getCurveList, getAaveList, getCompoundList, addRowToHTML} = require('./compound_functions');
+const {getCompoundList, addRowToHTML} = require('./compound_functions');
 
 let sortBy = "supply";
 let reverse = true;
