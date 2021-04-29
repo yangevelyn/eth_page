@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify gas.js -o gas_bundle.js && browserify balance.js -o balance_bundle.js",
+    "build": "browserify gas.js -o gas_bundle.js && browserify balance.js -o balance_bundle.js && browserify compound.js -o compound_bundle.js && browserify aave.js -o aave_bundle.js",
     "start": "node server.js"
   },
   "keywords": [],
@@ -22,6 +22,7 @@
     "ethers": "5.0.9",
     "etherscan-api": "^10.0.5",
     "express": "^4.17.1",
+    "graphql": "^15.5.0",
     "line-reader": "^0.4.0",
     "web3": "^1.3.4"
   }

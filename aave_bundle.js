@@ -1,156 +1,72 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-const {getBalanceList, getETHBalance, addRowToHTML} = require('./balance_functions');
+const {getAaveList, addRowToHTML} = require('./aave_functions');
 
-var account = "";
-// var searchParams = new URLSearchParams(window.location.href);
-// if(searchParams.has("address")){
-//   account = searchParams.get("address");
-//   document.cookie = "acc=" + account;
-// } else{
-//   if(document.cookie != ""){
-//     console.log('has cookie');
-//     account = document.cookie
-//               .split('; ')
-//               .find(row => row.startsWith('acc='))
-//               .split('=')[1];
-//     console.log(window.location.href.split('?'));
-//     // window.location.href = window.location.href.split('?') + "?address=" + account; 
-//   }
-// }
+let sortBy = "deposit";
+let reverse = true;
+let aaveList = [];
 
-var block = "";
+function sort(type){
+  //clear all icons
+  // document.getElementById('market-sort').classList = "fa fa-sort";
+  // document.getElementById('market-sort').style = "color: lightgrey;";
+  document.getElementById('deposit-sort').classList = "fa fa-sort";
+  document.getElementById('deposit-sort').style = "color: lightgrey;";
+  document.getElementById('s-borrow-sort').classList = "fa fa-sort";
+  document.getElementById('s-borrow-sort').style = "color: lightgrey;";
+  document.getElementById('v-borrow-sort').classList = "fa fa-sort";
+  document.getElementById('v-borrow-sort').style = "color: lightgrey;";
 
-function setInput(){
-  document.getElementById("token-list").innerHTML = '';
-  account = document.getElementById("account-input").value;
-  document.cookie = "acc=" + account;
-  block = document.getElementById("block-input").value;
-  document.cookie = "block=" + block;
-  document.getElementById('spinner').style.display = 'block';
-  main();
+  let icon = document.getElementById(`${type}-sort`);
 
-  console.log(block);
-  window.location.href = window.location.href.split('?')[0] + "?address=" + account + "&block=" + block;
-}
-
-async function copyBalanceLink(){
-  try{
-    await navigator.clipboard.writeText(window.location.href);
-    var share = document.getElementById('share');
-    share.classList.replace('btn-light', 'btn-success');
-    share.innerHTML = "URL copied!";
-  } catch(err){
-    console.log(err);
-  }
-}
-
-async function setUserInfoHTML(){
-  let accountHTML = document.getElementById("account");
-  accountHTML.innerHTML = account;
-  accountHTML.dataset.toggle = "popover";
-  accountHTML.dataset.content = `<a href='https://etherscan.io/address/${account}'>Etherscan page</a>`;
-  accountHTML.title = account;
-  document.getElementById("block").innerHTML = block;
-  var share = document.getElementById("share");
-  share.style.display = 'block';
-  share.classList.replace('btn-success', 'btn-light');
-  share.innerHTML = `<i class="fa fa-share"></i>&nbsp;Share`;
-  if(account == ""){
-    document.getElementById("share").style.display = "none";
-  }
-}
-
-function getCookie(){
-  // var searchParams = new URLSearchParams(window.location.search);
-  // if(searchParams.has("address") === true){
-  //   account = searchParams.get("address");
-  //   console.log(account);
-  //   document.cookie = "acc=" + account;
-  // } else{
-  //   if(document.cookie != ""){
-  //     console.log(document.cookie);
-  //     account = document.cookie
-  //               .split('; ')
-  //               .find(row => row.startsWith('acc='))
-  //               .split('=')[1];
-  //     console.log(account);
-  //     if(account != ""){
-  //       window.location.href = window.location.href.split('?')[0] + "?address=" + account;
-  //     }
-  //   }
-  // }
-
-  var searchParams = new URLSearchParams(window.location.search);
-  if(searchParams.has("address") === true){
-    account = searchParams.get("address");
-    document.cookie = "acc=" + account;
+  //reverse if already sorting by this type
+  if(sortBy == type){
+    reverse = !reverse;
   } else{
-    if(document.cookie != ""){
-      account = document.cookie
-                .split('; ')
-                .find(row => row.startsWith('acc='));
-      if(account != undefined){
-        account = account.split('=')[1];
-      }
-      if(account != ""){
-        window.location.search += "&address=" + account;
-      }
-    }
+    reverse = true;
   }
-  if(searchParams.has("block") === true){
-    block = searchParams.get("block");
-    document.cookie = "block=" + block;
-  } else{
-    if(document.cookie != ""){
-      block = document.cookie
-                .split('; ')
-                .find(row => row.startsWith('block='))
-      if(block != undefined){
-        block = block.split('=')[1];
-      }      
-      if(block != ""){
-        window.location.search += "&block=" + block;
-      }
-    }
-  }
+
+  //set icon
+  reverse ? 
+    icon.classList.replace('fa-sort', 'fa-sort-down') : 
+    icon.classList.replace('fa-sort', 'fa-sort-up');
+  icon.style = "color: slategrey;";
+  
+  sortBy = type;
+  setTableHTML();
 }
 
-async function init_balance(){
-  getCookie();
-  document.getElementById('balance-submit').onclick = setInput;
-  document.getElementById('account-input').value = account;
-  document.getElementById('block-input').value = block;
-  document.getElementById("share").onclick = copyBalanceLink;
-
-  document.cookie = "acc=" + account;
-  document.cookie = "block=" + block;
+async function init_aave(){
+  // document.getElementById("market-head").onclick = () => {sort('market')};
+  document.getElementById("deposit-head").onclick = () => {sort('deposit')};
+  document.getElementById("s-borrow-head").onclick = () => {sort('s-borrow')};
+  document.getElementById("v-borrow-head").onclick = () => {sort('v-borrow')};
 
   main();
+}
+
+async function setTableHTML(){
+  //clear list
+  document.getElementById('mk-list').innerHTML = `<tbody id="mk-list"></tbody>`;
+
+  if(sortBy == 'deposit'){
+    aaveList.sort((a, b) => reverse ? b.deposit_apy - a.deposit_apy : a.deposit_apy - b.deposit_apy);
+  } else if(sortBy == 's-borrow'){
+    aaveList.sort((a, b) => reverse ? b.borrow_apy_s - a.borrow_apy_s : a.borrow_apy_s - b.borrow_apy_s);
+  } else if(sortBy == 'v-borrow'){
+    aaveList.sort((a, b) => reverse ? b.borrow_apy_var - a.borrow_apy_var : a.borrow_apy_var - b.borrow_apy_var);
+  }
+
+  for(let i = 0; i < aaveList.length; i++){
+    await addRowToHTML(aaveList[i]);
+  }
 }
 
 async function main(){
-  if(account == "" || block == ""){
-    return;
-  }
   try {
     document.getElementById('spinner').style.display = 'block';
-    await setUserInfoHTML();
+    aaveList = await getAaveList();
 
-    // get eth data
-    const ethBalance = await getETHBalance(account, block)
-    const ethPriceRes = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
-    const ethUSD = ethPriceRes.data.ethereum.usd
-    const ethObj = {
-      symbol: 'ETH',
-      logo: 'https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/ed396/eth-diamond-black.png',
-      balance: ethBalance,
-      usd: ethUSD
-    }
-    //add eth info to table
-    await addRowToHTML(ethObj);
-
-    //add each token to table
-    await getBalanceList(account, block)
+    await setTableHTML();
 
     document.getElementById('spinner').style.display = 'none';
   } catch (error) {
@@ -159,135 +75,80 @@ async function main(){
   }
 }
 
-window.onload = init_balance;
+window.onload = init_aave;
 
-},{"./balance_functions":2}],2:[function(require,module,exports){
+},{"./aave_functions":2}],2:[function(require,module,exports){
 var Web3 = require('web3');
 var web3 = new Web3(window.ethereum || 'https://eth-mainnet.alchemyapi.io/v2/yqxbxAize0IkxzqL7uMLg1BeeNpql0pi');
 
-//etherscan api key
-const API_KEY = 'WWQ7RBAZWWC9NGV61ITZEV4S7TTBRBQGK1';
-// const API_KEY = '';
-
-// https://www.shawntabrizi.com/ethereum/ethereum-token-contract-abi-web3-erc-20-human-standard-tokens/
-
 const token_json = require("./tokenlist.json");
 var tokenlist = token_json.tokens;
-const { human_standard_token_abi } = require('./token_abi');
+const { aave_abi } = require('./token_abi');
 
-//filters out token duplicates
-async function filterDuplicates(txs){
-  let seen = [];
-  return txs.filter((item) => {
-    let ind = seen.findIndex(e => e == item.contractAddress);
-    if(ind == -1){
-      seen.push(item.contractAddress);
-      return true;
-    }
-    return false;
-  });
-}
-
-//format tokens from etherscan api call
-function formatTokenObject(item){
-  //get logo if in token is in token_abi.json
-  const ind = tokenlist.findIndex(token => token.symbol == item.tokenSymbol);
-  let logo = "";
-  if(ind != -1){
-    logo = tokenlist[ind].logoURI;
-  }
-  //recreate tokenlist.json format
-  return {
-    address: item.contractAddress,
-    decimals: item.tokenDecimal,
-    logoURI: logo,
-    name: item.tokenName,
-    symbol: item.tokenSymbol
-  }
-}
-
-//get list of relevant tokens from account transaction list from etherscan
-async function getTxListFromEtherscan(account){
-  let txUrl =  `https://api.etherscan.io/api?module=account&action=tokentx&address=${account}&startblock=0&endblock=latest&sort=asc&apikey=${API_KEY}`;
-  return await axios.get(txUrl)
-  .then(async (res) => {
-    //filter out token duplicates
-    let txs = res.data.result;
-    txs = await filterDuplicates(txs);
-
-    //loop through api call results
-    return txs.map((item) => {
-      if(item.tokenSymbol != ""){
-        return formatTokenObject(item);
-      }
-    })
-  })
-}
-
-//get an account's balance of an individual token from Web3
-async function getTokenBalance(item, account, block){
-  let contract = new web3.eth.Contract(human_standard_token_abi, item.address);
+// get list of Aave's tokens
+async function getAaveList(){
+  let contract = new web3.eth.Contract(aave_abi, '0x057835Ad21a177dbdd3090bB1CAE03EaCF78Fc6d');
 
   try{
-    const bal = await contract.methods.balanceOf(account).call(block);
-    // console.log(item.symbol, item.address, bal);
-
-    return {
-      address: item.address,
-      symbol: item.symbol,
-      balance: bal/10**(item.decimals),
-      logo: item.logoURI 
+    const tokenList = await contract.methods.getAllReservesTokens().call();
+    let assetList = [];
+    for(let i = 0; i < tokenList.length; i++){
+      // const tokenAddress = await contract.methods.getReserveTokensAddresses(tokenList[i][1]).call();
+      // assetList.push({[tokenList[i][0]]: tokenAddress});
+      // console.log(tokenAddress);
+      const data = await contract.methods.getReserveData(tokenList[i][1]).call();
+      assetList.push({
+        symbol: tokenList[i][0],
+        deposit_apy: (parseInt(data.liquidityRate) / 10**25).toFixed(2),
+        borrow_apy_var: (parseInt(data.variableBorrowRate) / 10**25).toFixed(2),
+        borrow_apy_s: (parseInt(data.stableBorrowRate) / 10**25).toFixed(2),
+      });
     }
+    return assetList;
   } catch(err){
     console.log(err);
   }
 }
 
-//get token's usd price from coingecko
-async function getUSDFromCoingecko(item){
-  let apiUrl = `https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${item}&vs_currencies=usd`
-  try {
-    return axios.get(apiUrl)
-  } catch(err) {
-    console.log(err);
-  }
-}
-
 async function addRowToHTML(token){
+  //get logo if in token is in token_abi.json
+  const ind = tokenlist.findIndex(i => i.symbol == token.symbol);
+  let logo = "";
+  if(ind != -1){
+    logo = tokenlist[ind].logoURI;
+  }
+
   let node = document.createElement("tr");
-  if(token.symbol != 'ETH'){
-    node.dataset.toggle = "popover";
-    node.dataset.content = `<a target="_blank" href='https://etherscan.io/token/${token.address}'>Etherscan page</a>`
-    node.title = token.address;
-  }
-  let symbol = document.createElement("th");
-  let logo = document.createElement("img");
-  let symbolName = document.createElement("div");
-  logo.src = token.logo;
-  logo.height = "36";
-  symbolName.innerText = token.symbol;
-  symbolName.style.marginLeft = "8px";
-  symbol.appendChild(logo);
-  symbol.appendChild(symbolName);
-  symbol.style.display = "flex";
-  symbol.style.alignItems = "center";
-  let balance = document.createElement("td");
-  balance.innerHTML = token.balance;
-  let usd = document.createElement("td");
-  if(typeof(token.usd) == "number"){
-    usd.innerHTML = "$" + (Math.round((token.balance * token.usd + Number.EPSILON) * 100)/100).toLocaleString();
-  } else{
-    usd.innerHTML = "--";
-  }
+  let market = document.createElement("th");
+  let logoHTML = document.createElement("img");
+  let tokenText = document.createElement("div");
+  let name = document.createElement("div");
+  let symbol = document.createElement("div");
+  logoHTML.src = logo;
+  logoHTML.height = "36";
+  name.innerText = token.symbol;
+  name.style.marginLeft = "8px";
+  symbol.innerText = token.symbol;
+  symbol.style.marginLeft = "8px";
+  // tokenText.appendChild(name);
+  tokenText.appendChild(symbol);
+  market.appendChild(logoHTML);
+  market.appendChild(tokenText);
+  market.style.display = "flex";
+  market.style.alignItems = "center";
 
-  if(token.symbol == 'ETH'){
-    node.style.backgroundColor = 'rgba(183,228,199,0.25)';
-  }
+  let deposit = document.createElement("td");
+  deposit.innerHTML = token.deposit_apy + "%";
+  let sBorrow = document.createElement("td");
+  sBorrow.innerHTML = token.borrow_apy_s + "%";
+  let vBorrow = document.createElement("td");
+  vBorrow.innerHTML = token.borrow_apy_var + "%";
 
-  node.appendChild(symbol);
-  node.appendChild(balance);
-  node.appendChild(usd);
-  document.getElementById("token-list").appendChild(node);
+  node.appendChild(market);
+  node.appendChild(deposit);
+  node.appendChild(vBorrow);
+  node.appendChild(sBorrow);
+  document.getElementById("mk-list").appendChild(node);
   $(function () {
     $('[data-toggle="popover"]').popover({html: true})
   })
@@ -302,48 +163,11 @@ async function addRowToHTML(token){
   });
 }
 
-async function getBalanceList(account, block){
-  var balanceList = {};
-  let addressList = [];
+getAaveList().then((res) => {
+  console.log(res);
+})
 
-  let relevantTokenList = await getTxListFromEtherscan(account);
-  console.log(relevantTokenList);
-
-  //add tokens with non-zero balance to balanceList
-  //add token address to addressList
-  for(let i = 0; i < relevantTokenList.length; i++){
-    try{
-      const token = relevantTokenList[i];
-      let balance = await getTokenBalance(token, account, block);
-
-      //if non-zero balance, add usd to object, add object to list
-      if(balance.balance > 1**-18){
-        const usd = await getUSDFromCoingecko(token.address);
-        if(usd.data[token.address]){
-          balance = {...balance, usd: usd.data[token.address].usd};
-        }
-        balanceList[token.address] = balance;
-        addressList.push(token.address);
-
-        addRowToHTML(balance);
-      }
-    } catch(err){
-      console.log(err);
-    }
-  }
-
-  console.log(balanceList);
-  return balanceList;
-}
-
-async function getETHBalance(account, block){
-  return web3.eth.getBalance(account, block)
-  .then((bal) => {
-    return web3.utils.fromWei(bal);
-  })
-}
-
-module.exports = {getBalanceList, getETHBalance, addRowToHTML};
+module.exports = {getAaveList, addRowToHTML};
 
 },{"./token_abi":423,"./tokenlist.json":424,"web3":405}],3:[function(require,module,exports){
 "use strict";
